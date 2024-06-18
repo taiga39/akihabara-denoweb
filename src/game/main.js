@@ -3,6 +3,7 @@ import { Game } from './scenes/Game';
 import { GameOver } from './scenes/GameOver';
 import { MainMenu } from './scenes/MainMenu';
 import { Stop } from './scenes/Stop';
+import { Pinch } from './scenes/Pinch';
 import Phaser from 'phaser';
 import { Preloader } from './scenes/Preloader';
 
@@ -20,14 +21,13 @@ const config = {
         MainMenu,
         Game,
         GameOver,
-        Stop
+        Stop,
+        Pinch
     ]
 };
 
 const StartGame = (parent) => {
-
     return new Phaser.Game({ ...config, parent });
-
 }
 
 export default StartGame;
