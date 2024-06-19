@@ -4,6 +4,7 @@ import { GameOver } from './scenes/GameOver';
 import { MainMenu } from './scenes/MainMenu';
 import { Stop } from './scenes/Stop';
 import { Pinch } from './scenes/Pinch';
+import { CrossWord } from './scenes/CrossWord';
 import Phaser from 'phaser';
 import { Preloader } from './scenes/Preloader';
 
@@ -22,7 +23,8 @@ const config = {
         Game,
         GameOver,
         Stop,
-        Pinch
+        Pinch,
+        CrossWord
     ]
 };
 
