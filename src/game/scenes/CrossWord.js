@@ -9,7 +9,9 @@ export class CrossWord extends Scene {
 
     create() {
         this.gridSize = 9; // グリッドのサイズ（9x9）
-        this.cellSize = 50; // 各セルのサイズ（ピクセル）
+
+        // 画面幅に基づいてセルサイズを動的に計算
+        this.cellSize = this.calculateCellSize();
         this.cells = []; // セルのデータを保持する配列
         this.activeCell = null; // フォーカスされているセル
 
@@ -22,6 +24,11 @@ export class CrossWord extends Scene {
 
         // タッチ/クリックイベントのリスナー
         this.input.on('pointerdown', this.handlePointerDown, this);
+    }
+
+    calculateCellSize() {
+        // 画面の幅を9分割してセルサイズを計算
+        return this.scale.width / this.gridSize;
     }
 
     createGrid() {
@@ -47,7 +54,7 @@ export class CrossWord extends Scene {
                     this.gridOriginX + col * this.cellSize + this.cellSize / 2,
                     this.gridOriginY + row * this.cellSize + this.cellSize / 2,
                     '',
-                    { font: '24px Arial', color: '#000000' }
+                    { font: `${this.cellSize / 2}px Arial`, color: '#000000' }
                 ).setOrigin(0.5);
 
                 // セルのデータを保存
