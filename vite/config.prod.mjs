@@ -23,8 +23,9 @@ export default defineConfig({
         react(),
         phasermsg()
     ],
-    logLevel: 'warning',
+    logLevel: 'info',  // 'warning' から 'info' に変更
     build: {
+        outDir: 'dist',  // この行を追加
         rollupOptions: {
             output: {
                 manualChunks: {
