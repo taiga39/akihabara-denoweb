@@ -5,6 +5,7 @@ import { MainMenu } from './scenes/MainMenu';
 import { Stop } from './scenes/Stop';
 import { Pinch } from './scenes/Pinch';
 import { CrossWord } from './scenes/CrossWord';
+import { Login } from './scenes/Login';
 import Phaser from 'phaser';
 import { Preloader } from './scenes/Preloader';
 
@@ -33,6 +34,7 @@ const config = {
         MainMenu,
         Game,
         GameOver,
+        Login,
         Stop,
         Pinch,
         CrossWord
