@@ -6,6 +6,8 @@ import { Stop } from './scenes/Stop';
 import { Pinch } from './scenes/Pinch';
 import { CrossWord } from './scenes/CrossWord';
 import { Login } from './scenes/Login';
+import { Block } from './scenes/Block';
+
 import Phaser from 'phaser';
 import { Preloader } from './scenes/Preloader';
 
@@ -37,8 +39,16 @@ const config = {
         Login,
         Stop,
         Pinch,
-        CrossWord
-    ]
+        CrossWord,
+        Block
+    ],
+    physics: {
+        default: 'arcade',
+        arcade: {
+            gravity: { y: 0 },
+            debug: false
+        }
+    }
 };
 
 const StartGame = (parent) => {
