@@ -7,7 +7,9 @@ export class Pinch extends Scene {
         super('Pinch');
         this.cells = [];
         this.columnCount = 5;
-        this.rowCount = 5;
+        this.rowCount = 3;
+        this.verticalPadding = 100;
+        this.checkboxSize = 15;
     }
 
     preload() {
@@ -16,43 +18,56 @@ export class Pinch extends Scene {
 
     create() {
         this.cameras.main.setBackgroundColor('#ffffff');
-
-        // セルサイズと世界サイズを計算
+    
+        // 白いオーバーレイを作成
+        const overlay = this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0xffffff)
+            .setOrigin(0)
+            .setDepth(1000); // 最前面に表示
+    
         this.calculateSizes();
-
         this.createGrid();
-
+    
         const dragScale = this.plugins.get('rexpinchplugin').add(this);
         const camera = this.cameras.main;
-
-        // 初期ズームを3列表示に設定
+    
+        // 3列表示に設定
         this.setInitialZoom(camera);
-
-        dragScale.on('drag1', (dragScale) => {
-            const drag1Vector = dragScale.drag1Vector;
-            camera.scrollX -= drag1Vector.x / camera.zoom;
-            camera.scrollY -= drag1Vector.y / camera.zoom;
-            this.limitCameraScroll(camera);
-        });
-
+    
         dragScale.on('pinch', (dragScale) => {
             const scaleFactor = dragScale.scaleFactor;
+            const oldZoom = camera.zoom;
             camera.zoom *= scaleFactor;
             camera.zoom = Phaser.Math.Clamp(camera.zoom, this.minZoom, this.maxZoom);
+            
+            // ズーム時にカメラの中心を維持
+            const zoomChange = camera.zoom / oldZoom;
+            camera.scrollX = (camera.scrollX + camera.width * 0.5) * zoomChange - camera.width * 0.5;
+            camera.scrollY = (camera.scrollY + camera.height * 0.5) * zoomChange - camera.height * 0.5;
+            
             this.limitCameraScroll(camera);
         });
-
+    
         this.input.on('gameobjectdown', this.handleCellClick, this);
+    
+        // 短い遅延の後、オーバーレイを削除
+        this.time.delayedCall(100, () => {
+            overlay.destroy();
+        });
     }
 
     calculateSizes() {
         const screenWidth = this.scale.width;
         const screenHeight = this.scale.height;
-        this.cellSize = Math.min(screenWidth / 3, screenHeight / this.rowCount);
+        this.cellSize = Math.min(screenWidth / 5, (screenHeight - 2 * this.verticalPadding) / this.rowCount);
         this.worldWidth = this.cellSize * this.columnCount;
-        this.worldHeight = this.cellSize * this.rowCount;
-        this.minZoom = screenWidth / this.worldWidth;
-        this.maxZoom = (screenWidth / this.worldWidth) * (5 / 3);
+        this.worldHeight = this.cellSize * this.rowCount + 2 * this.verticalPadding;
+        this.minZoom = 1;
+        this.maxZoom = screenWidth / (this.cellSize * 3);
+    }
+
+    showAllColumns(camera) {
+        camera.zoom = this.minZoom;
+        camera.centerOn(this.worldWidth / 2, this.worldHeight / 2);
     }
 
     setInitialZoom(camera) {
@@ -61,34 +76,31 @@ export class Pinch extends Scene {
     }
 
     createGrid() {
+        const graphics = this.add.graphics();
+        graphics.lineStyle(1, 0x000000, 0.4);
+
+        const startY = this.verticalPadding;
+
         for (let row = 0; row < this.rowCount; row++) {
             for (let col = 0; col < this.columnCount; col++) {
                 const x = col * this.cellSize;
-                const y = row * this.cellSize;
+                const y = startY + row * this.cellSize;
                 this.createCell(x, y, this.cellSize);
+
+                // グリッド線を描画
+                graphics.strokeRect(x, y, this.cellSize, this.cellSize);
             }
         }
-
-        const graphics = this.add.graphics();
-        graphics.lineStyle(1, 0x000000, 0.4);
-        for (let i = 0; i <= this.columnCount; i++) {
-            const position = i * this.cellSize;
-            graphics.moveTo(0, position);
-            graphics.lineTo(this.worldWidth, position);
-            graphics.moveTo(position, 0);
-            graphics.lineTo(position, this.worldHeight);
-        }
-        graphics.strokePath();
     }
 
     createCell(x, y, size) {
-        const cell = this.add.rectangle(x, y, size, size, 0xffffff, 0)
+        const cell = this.add.rectangle(x, y, size, size, 0xffffff)
             .setOrigin(0)
             .setInteractive();
 
         const shape = this.createRandomShape(x + size / 2, y + size / 2, size * 0.4);
-        const checkbox = this.createCheckbox(x + 10, y + 10, false);
-        
+        const checkbox = this.createCheckbox(x + 5, y + 5, false); // チェックボックスの位置を調整
+
         this.cells.push({ cell, checkbox, shape });
     }
 
@@ -116,8 +128,8 @@ export class Pinch extends Scene {
 
     createCheckbox(x, y, checked) {
         const graphics = this.add.graphics();
-        graphics.lineStyle(2, 0x000000);
-        graphics.strokeRect(x, y, 20, 20);
+        graphics.lineStyle(1, 0x000000); // 線の太さを1に変更
+        graphics.strokeRect(x, y, this.checkboxSize, this.checkboxSize);
 
         if (checked) {
             this.drawCheck(graphics, x, y);
@@ -127,11 +139,11 @@ export class Pinch extends Scene {
     }
 
     drawCheck(graphics, x, y) {
-        graphics.lineStyle(2, 0x000000);
+        graphics.lineStyle(1, 0x000000); // 線の太さを1に変更
         graphics.beginPath();
-        graphics.moveTo(x + 3, y + 10);
-        graphics.lineTo(x + 8, y + 15);
-        graphics.lineTo(x + 17, y + 5);
+        graphics.moveTo(x + 3, y + this.checkboxSize / 2);
+        graphics.lineTo(x + this.checkboxSize / 3, y + this.checkboxSize - 3);
+        graphics.lineTo(x + this.checkboxSize - 3, y + 3);
         graphics.strokePath();
     }
 
@@ -142,11 +154,11 @@ export class Pinch extends Scene {
             const checked = !checkbox.data || !checkbox.data.get('checked');
             
             checkbox.clear();
-            checkbox.lineStyle(2, 0x000000);
-            checkbox.strokeRect(cellData.cell.x + 10, cellData.cell.y + 10, 20, 20);
+            checkbox.lineStyle(1, 0x000000); // 線の太さを1に変更
+            checkbox.strokeRect(cellData.cell.x + 5, cellData.cell.y + 5, this.checkboxSize, this.checkboxSize);
             
             if (checked) {
-                this.drawCheck(checkbox, cellData.cell.x + 10, cellData.cell.y + 10);
+                this.drawCheck(checkbox, cellData.cell.x + 5, cellData.cell.y + 5);
             }
             
             if (!checkbox.data) {
@@ -158,12 +170,12 @@ export class Pinch extends Scene {
 
     limitCameraScroll(camera) {
         const zoom = camera.zoom;
-        const leftBound = this.worldWidth * (1 - 1 / zoom) / 2;
-        const rightBound = this.worldWidth * (1 / zoom - 1) / 2;
-        const topBound = this.worldHeight * (1 - 1 / zoom) / 2;
-        const bottomBound = this.worldHeight * (1 / zoom - 1) / 2;
+        const leftBound = (this.worldWidth - this.scale.width / zoom) / 2;
+        const rightBound = -leftBound;
+        const topBound = (this.worldHeight - this.scale.height / zoom) / 2;
+        const bottomBound = -topBound;
 
-        camera.scrollX = Phaser.Math.Clamp(camera.scrollX, leftBound, -rightBound);
-        camera.scrollY = Phaser.Math.Clamp(camera.scrollY, topBound, -bottomBound);
+        camera.scrollX = Phaser.Math.Clamp(camera.scrollX, leftBound, rightBound);
+        camera.scrollY = Phaser.Math.Clamp(camera.scrollY, topBound, bottomBound);
     }
 }
