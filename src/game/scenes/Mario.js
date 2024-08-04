@@ -11,10 +11,9 @@ export class Mario extends Scene {
         this.cameraLerpFactor = 0.05; // カメラの追従速度
         this.hasMovedRight = false; // 右に移動したかどうかを追跡
         this.leftMoveProgress = 0; // 左移動の進行度
-        this.moveLeft = false; // 左移動ボタンの状態
-        this.moveRight = false; // 右移動ボタンの状態
         this.jumpPressed = false; // ジャンプボタンの状態
         this.jumpCooldown = 0;
+        this.autoMove = 0; // -1: 左、0: 停止、1: 右
     }
 
     create() {
@@ -44,9 +43,6 @@ export class Mario extends Scene {
     
         // 移動ボタン
         this.createMoveButtons();
-
-        // 移動状態を保持する変数
-        this.moveDirection = 0;
     }
 
     createGradientBackground() {
@@ -73,26 +69,29 @@ export class Mario extends Scene {
         const buttonStyle = {
             fontSize: '32px',
             backgroundColor: '#4a4a4a',
-            padding: { x: 20, y: 10 },
-            fixedWidth: 100,
+            padding: { x: 10, y: 10 },
+            fixedWidth: this.scale.width / 4 - 10, // 画面幅の1/4から余白を引いた幅
             align: 'center'
         };
     
-        const leftButton = this.add.text(50, this.scale.height - 80, '←', buttonStyle)
+        const buttonY = this.scale.height - 80;
+    
+        const leftButton = this.add.text(5, buttonY, '←', buttonStyle)
             .setScrollFactor(0)
             .setInteractive()
-            .on('pointerdown', () => this.moveLeft = true)
-            .on('pointerup', () => this.moveLeft = false)
-            .on('pointerout', () => this.moveLeft = false);
+            .on('pointerdown', () => this.autoMove = -1);
     
-        const rightButton = this.add.text(160, this.scale.height - 80, '→', buttonStyle)
+        const stopButton = this.add.text(this.scale.width / 4 + 5, buttonY, '■', buttonStyle)
             .setScrollFactor(0)
             .setInteractive()
-            .on('pointerdown', () => this.moveRight = true)
-            .on('pointerup', () => this.moveRight = false)
-            .on('pointerout', () => this.moveRight = false);
+            .on('pointerdown', () => this.autoMove = 0);
     
-        const jumpButton = this.add.text(this.scale.width - 150, this.scale.height - 80, 'Jump', buttonStyle)
+        const rightButton = this.add.text(this.scale.width / 2 + 5, buttonY, '→', buttonStyle)
+            .setScrollFactor(0)
+            .setInteractive()
+            .on('pointerdown', () => this.autoMove = 1);
+    
+        const jumpButton = this.add.text(this.scale.width * 3 / 4 + 5, buttonY, 'Jump', buttonStyle)
             .setScrollFactor(0)
             .setInteractive()
             .on('pointerdown', () => this.jumpPressed = true)
@@ -101,17 +100,11 @@ export class Mario extends Scene {
     
     moveMario() {
         const moveSpeed = 200;
-        if (this.moveLeft) {
-            this.mario.body.setVelocityX(-moveSpeed);
-        } else if (this.moveRight) {
-            this.mario.body.setVelocityX(moveSpeed);
-        } else {
-            this.mario.body.setVelocityX(0);
-        }
+        this.mario.body.setVelocityX(this.autoMove * moveSpeed);
     }
 
     jumpMario() {
-        if (this.mario.body.touching.down && this.jumpCooldown <= 0) {
+        if ((this.mario.body.touching.down || this.mario.body.blocked.down) && this.jumpCooldown <= 0) {
             this.mario.body.setVelocityY(-250);
             this.jumpCooldown = 300; // 300ミリ秒のクールダウンを設定
         }
@@ -128,6 +121,9 @@ export class Mario extends Scene {
         // ジャンプの処理
         if (this.jumpPressed) {
             this.jumpMario();
+        } else {
+            // ジャンプボタンが押されていない場合、クールダウンをリセット
+            this.jumpCooldown = 0;
         }
 
         // ジャンプのクールダウンを減少
@@ -169,14 +165,6 @@ export class Mario extends Scene {
             if (this.leftMoveProgress === 1) {
                 this.cameras.main.startFollow(this.mario);
             }
-        }
-
-        if (this.moveLeft) {
-            this.moveDirection = -1;
-        } else if (this.moveRight) {
-            this.moveDirection = 1;
-        } else {
-            this.moveDirection = 0;
         }
     }
 }
