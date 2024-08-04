@@ -1,6 +1,7 @@
 'use strict';
 
 import { Scene } from 'phaser';
+import SpeechBubble from '../component/SpeechBubble';
 
 export class Pinch extends Scene {
     constructor() {
@@ -53,6 +54,8 @@ export class Pinch extends Scene {
         this.time.delayedCall(100, () => {
             overlay.destroy();
         });
+
+        // const speechBubble = new SpeechBubble(this, 100, 100, 200, 100, "helloHEyheyhey@こんにちは！@これは吹き出しです。");
     }
 
     calculateSizes() {
