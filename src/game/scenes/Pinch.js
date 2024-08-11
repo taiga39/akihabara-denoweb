@@ -55,7 +55,7 @@ export class Pinch extends Scene {
             overlay.destroy();
         });
 
-        // const speechBubble = new SpeechBubble(this, 100, 100, 200, 100, "helloHEyheyhey@こんにちは！@これは吹き出しです。");
+        const speechBubble = new SpeechBubble(this, 120, 250, 200, 100, "helloHEyheyhey@こんにちは！@これは吹き出しです。");
     }
 
     calculateSizes() {
