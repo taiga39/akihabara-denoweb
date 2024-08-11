@@ -8,128 +8,184 @@ export class CrossWord extends Scene {
     }
 
     create() {
-        this.gridSize = 9; // グリッドのサイズ（9x9）
+        this.gridSize = 4;
+        this.cellSize = this.scale.width / 5;
+        this.cells = [];
+        this.activeCell = null;
 
-        // 画面幅に基づいてセルサイズを動的に計算
-        this.cellSize = this.calculateCellSize();
-        this.cells = []; // セルのデータを保持する配列
-        this.activeCell = null; // フォーカスされているセル
-
-        // グリッドの描画位置をキャンバス中央に設定
         this.gridOriginX = (this.scale.width - this.cellSize * this.gridSize) / 2;
-        this.gridOriginY = (this.scale.height - this.cellSize * this.gridSize) / 2;
+        this.gridOriginY = this.scale.height * 0.2;
 
-        // グリッドを描画
+        this.blackCells = [
+            { row: 0, col: 2 },
+            { row: 1, col: 0 },
+            { row: 2, col: 2 }
+        ];
+
         this.createGrid();
-
-        // タッチ/クリックイベントのリスナー
-        this.input.on('pointerdown', this.handlePointerDown, this);
-    }
-
-    calculateCellSize() {
-        // 画面の幅を9分割してセルサイズを計算
-        return this.scale.width / this.gridSize;
+        this.createInputElement();
+        this.setupKeyboardInput();
+        this.createSubmitButton();
+        this.createWordList();
     }
 
     createGrid() {
-        // 背景色を設定
         this.cameras.main.setBackgroundColor('#ffffff');
 
-        const graphics = this.add.graphics();
-        graphics.lineStyle(2, 0x000000, 1);
-
-        // 9x9のグリッドを描画
         for (let row = 0; row < this.gridSize; row++) {
             for (let col = 0; col < this.gridSize; col++) {
-                // 各セルに空のテキストオブジェクトを追加
+                const cellX = this.gridOriginX + col * this.cellSize;
+                const cellY = this.gridOriginY + row * this.cellSize;
+
+                const isBlackCell = this.blackCells.some(cell => cell.row === row && cell.col === col);
+
                 const cellBg = this.add.rectangle(
-                    this.gridOriginX + col * this.cellSize + this.cellSize / 2,
-                    this.gridOriginY + row * this.cellSize + this.cellSize / 2,
+                    cellX + this.cellSize / 2,
+                    cellY + this.cellSize / 2,
                     this.cellSize,
                     this.cellSize,
-                    0xffffff // セルの背景色
+                    isBlackCell ? 0x000000 : 0xffffff
                 ).setStrokeStyle(2, 0x000000);
 
                 const cellText = this.add.text(
-                    this.gridOriginX + col * this.cellSize + this.cellSize / 2,
-                    this.gridOriginY + row * this.cellSize + this.cellSize / 2,
+                    cellX + this.cellSize / 2,
+                    cellY + this.cellSize / 2,
                     '',
-                    { font: `${this.cellSize / 2}px Arial`, color: '#000000' }
+                    { 
+                        font: `${this.cellSize / 2}px Arial`, 
+                        color: isBlackCell ? '#ffffff' : '#000000'
+                    }
                 ).setOrigin(0.5);
 
-                // セルのデータを保存
-                this.cells.push({
-                    row: row,
-                    col: col,
-                    background: cellBg,
-                    text: cellText
-                });
+                const inputZone = this.add.zone(cellX, cellY, this.cellSize, this.cellSize)
+                    .setOrigin(0)
+                    .setInteractive();
+
+                inputZone.on('pointerdown', () => this.focusCell({ row, col, background: cellBg, text: cellText, isBlack: isBlackCell }));
+
+                this.cells.push({ row, col, background: cellBg, text: cellText, inputZone, isBlack: isBlackCell });
             }
         }
     }
 
-    handlePointerDown(pointer) {
-        // クリック位置からセルを取得
-        const row = Math.floor((pointer.y - this.gridOriginY) / this.cellSize);
-        const col = Math.floor((pointer.x - this.gridOriginX) / this.cellSize);
-        const cell = this.cells.find(c => c.row === row && c.col === col);
+    createInputElement() {
+        this.inputElement = document.createElement('input');
+        this.inputElement.style.position = 'absolute';
+        this.inputElement.style.left = '-1000px';  // 画面外に配置
+        this.inputElement.style.top = '0px';
+        this.inputElement.style.opacity = '0';
+        this.inputElement.style.fontSize = '16px';  // iOSで自動ズームを防ぐ
+        document.body.appendChild(this.inputElement);
+    }
 
-        if (cell) {
-            // 先にセルをフォーカス
-            this.focusCell(cell);
+    setupKeyboardInput() {
+        this.input.keyboard.on('keydown', this.handleKeyInput, this);
+        this.inputElement.addEventListener('input', this.handleMobileInput.bind(this));
+        this.inputElement.addEventListener('blur', () => {
+            setTimeout(() => this.inputElement.focus(), 0);
+        });
+    }
 
-            // フォーカス後に短い遅延を入れてからダイアログを表示
-            setTimeout(() => {
-                this.promptForCharacters(cell);
-            }, 10); // 10msの遅延でフォーカスの視覚効果を反映
+    handleKeyInput(event) {
+        if (this.activeCell) {
+            if (event.key.length === 1) {
+                this.activeCell.text.setText(event.key);
+                this.focusNextCell();
+            } else if (event.key === 'Backspace') {
+                this.handleBackspace();
+            }
+        }
+    }
+
+    handleMobileInput(event) {
+        if (this.activeCell) {
+            const inputValue = event.target.value;
+            if (inputValue.length > 0) {
+                this.activeCell.text.setText(inputValue.slice(-1));
+                this.inputElement.value = '';  // 入力をクリア
+                this.focusNextCell();
+            }
+        }
+    }
+
+    handleBackspace() {
+        const currentText = this.activeCell.text.text;
+        if (currentText === '') {
+            this.focusPreviousCell();
+        } else {
+            this.activeCell.text.setText('');
         }
     }
 
     focusCell(cell) {
-        // 前のセルのフォーカスを解除
         if (this.activeCell) {
-            this.activeCell.background.setFillStyle(0xffffff); // 背景色を白に戻す
+            this.activeCell.background.setFillStyle(this.activeCell.isBlack ? 0x000000 : 0xffffff);
         }
-
-        // 新しいセルにフォーカスを設定
         this.activeCell = cell;
-        cell.background.setFillStyle(0xffff99); // フォーカスされたセルの背景色を黄色に設定
-    }
-
-    promptForCharacters(startCell) {
-        // ユーザーに文字列の入力を促す
-        const input = prompt('文字を入力してください:');
-
-        if (input) {
-            // 入力された文字を設定
-            this.setTextFromCell(startCell, input);
-        }
-    }
-
-    setTextFromCell(startCell, text) {
-        let currentCell = startCell;
-
-        for (let i = 0; i < text.length; i++) {
-            if (currentCell) {
-                currentCell.text.setText(text[i]);
-
-                // 次のセルに移動（右方向）
-                currentCell = this.getNextCell(currentCell);
-            } else {
-                break;
-            }
-        }
-    }
-
-    getNextCell(cell) {
-        const nextCol = cell.col + 1;
-        const nextRow = cell.row;
-
-        if (nextCol < this.gridSize) {
-            // 次の列が存在する場合
-            return this.cells.find(c => c.row === nextRow && c.col === nextCol);
+        if (!cell.isBlack) {
+            cell.background.setFillStyle(0xffff99);
         } else {
-            return null;
+            cell.background.setFillStyle(0x333333);
         }
+        this.inputElement.focus();  // モバイルキーボードを表示
+    }
+
+    focusNextCell() {
+        if (this.activeCell) {
+            const currentIndex = this.cells.indexOf(this.activeCell);
+            const nextIndex = (currentIndex + 1) % this.cells.length;
+            this.focusCell(this.cells[nextIndex]);
+        }
+    }
+
+    focusPreviousCell() {
+        if (this.activeCell) {
+            const currentIndex = this.cells.indexOf(this.activeCell);
+            const prevIndex = (currentIndex - 1 + this.cells.length) % this.cells.length;
+            this.focusCell(this.cells[prevIndex]);
+        }
+    }
+
+    createSubmitButton() {
+        const buttonWidth = this.cellSize * 2;
+        const buttonHeight = this.cellSize / 2;
+        const buttonX = this.gridOriginX + (this.cellSize * this.gridSize) / 2 - buttonWidth / 2;
+        const buttonY = this.gridOriginY + (this.cellSize * this.gridSize) + this.cellSize / 2;
+
+        const button = this.add.rectangle(buttonX, buttonY, buttonWidth, buttonHeight, 0x0000ff)
+            .setOrigin(0)
+            .setInteractive();
+
+        const buttonText = this.add.text(buttonX + buttonWidth / 2, buttonY + buttonHeight / 2, '提出', 
+            { font: '20px Arial', fill: '#ffffff' })
+            .setOrigin(0.5);
+
+        button.on('pointerdown', this.handleSubmit, this);
+    }
+
+    createWordList() {
+        const words = ['さお', 'おしろい', 'だいこん', 'しかく', 'さくそん'];
+        const startY = this.gridOriginY + (this.cellSize * this.gridSize) + this.cellSize * 1.5;
+        const lineHeight = 25; // 行の高さを固定値で設定
+
+        words.forEach((word, index) => {
+            this.add.text(this.gridOriginX, startY + index * lineHeight, word, 
+                { font: '20px Arial', fill: '#000000' });
+        });
+    }
+
+    handleSubmit() {
+        if (this.validateSubmission()) {
+            alert('OKKKKKK');
+        } else {
+            alert('booooooooooooooo');
+        }
+    }
+
+    validateSubmission() {
+        return this.cells.every(cell => {
+            const cellText = cell.text.text;
+            return cellText === 'も' || cellText === 'じ';
+        });
     }
 }
