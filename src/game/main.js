@@ -12,6 +12,8 @@ import { Mario } from './scenes/Mario';
 import Phaser from 'phaser';
 import { Preloader } from './scenes/Preloader';
 
+const RELATIVE_WIDTH = 100;
+
 // 画面の幅を取得し、9分割して16倍した値を高さに設定する関数
 function calculateGameHeight() {
     const screenWidth = window.innerWidth;
@@ -24,6 +26,15 @@ function calculateGameWidth() {
     return window.innerWidth;
 }
 
+// 相対単位からピクセルに変換する関数
+function toPixels(units, game) {
+    return units * (game.config.width / RELATIVE_WIDTH);
+}
+
+// ピクセルから相対単位に変換する関数
+function toRelativeUnits(pixels, game) {
+    return pixels / (game.config.width / RELATIVE_WIDTH);
+}
 // Phaser の設定
 const config = {
     type: Phaser.AUTO,
@@ -52,6 +63,21 @@ const config = {
         }
     }
 };
+
+export function createRelativeUnits(scene) {
+    const scaleFactor = scene.scale.width / RELATIVE_WIDTH;
+
+    return {
+        toPixels: (units) => units * scaleFactor,
+        toRelativeUnits: (pixels) => pixels / scaleFactor,
+        fontSize: {
+            small: scene.scale.width * 0.04,
+            medium: scene.scale.width * 0.06,
+            large: scene.scale.width * 0.08,
+            extraLarge: scene.scale.width * 0.1
+        }
+    };
+}
 
 const StartGame = (parent) => {
     return new Phaser.Game({ ...config, parent });
