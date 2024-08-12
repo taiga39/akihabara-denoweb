@@ -8,6 +8,11 @@ export class Login extends Scene {
         this.defaultPassword = 'ももももももなばしょ';
     }
 
+    preload() {
+        // rexhiddeninputtextplugin を読み込む
+        this.load.plugin('rexhiddeninputtextplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexhiddeninputtextplugin.min.js', true);
+    }
+
     create() {
         const ru = createRelativeUnits(this);
         
@@ -48,21 +53,86 @@ export class Login extends Scene {
         }).setOrigin(0.5).setInteractive();
 
         loginButton.on('pointerdown', () => {
-            console.log('Email:', this.emailInput.text);
-            console.log('Password:', this.passwordInput.realText);
+            // realTextに保存された内容を取得
+            const email = this.emailInput.realText;
+            const password = this.passwordInput.realText;
             
-            // パスワードチェック（ここでは単純な例として）
-            if (this.passwordInput.realText !== this.defaultPassword) {
-                this.errorMessage.setText('パスワードが間違っています');
+            // パスワードチェック
+            if (password === 'モロッコ' || password === 'もろっこ') {
+                alert('正解です');
             } else {
-                this.errorMessage.setText(''); // エラーメッセージをクリア
+                this.errorMessage.setText('パスワードが間違っています');
             }
-
+        
             // 初期文言をリセット
             this.resetInputFields();
         });
+    }
 
-        this.input.keyboard.on('keydown', this.handleKeyDown, this);
+    createInputField(x, y, defaultText, inputName, isPassword = false) {
+        const ru = createRelativeUnits(this);
+    
+        const field = this.add.rectangle(x, y, ru.toPixels(50), ru.toPixels(10), 0xffffff)
+            .setOrigin(0.5)
+            .setInteractive();
+    
+        const text = this.createHighQualityText(x - ru.toPixels(22), y - ru.toPixels(2), isPassword ? '●'.repeat(defaultText.length) : defaultText, {
+            fontSize: ru.fontSize.small,
+            color: '#000000',
+            fontFamily: 'Arial, sans-serif'
+        });
+    
+        // rexhiddeninputtextpluginを使用して入力フィールドを作成
+        const hiddenInput = this.plugins.get('rexhiddeninputtextplugin').add(text, {
+            type: 'text',
+            enterClose: false,
+            onOpen: (textObject) => {
+                field.setStrokeStyle(ru.toPixels(0.3), 0x0000ff);
+            },
+            onClose: (textObject) => {
+                field.setStrokeStyle(); // ストロークをクリア
+            },
+            onUpdate: (text, textObject, hiddenInputText) => {
+                // 入力されたテキストをリアルタイムでrealTextに保存
+                this[inputName].realText = text;
+                return text; // これによりテキストがPhaserのテキストオブジェクトに反映される
+            }
+        });
+    
+        // 入力フィールドの状態を保存
+        this[inputName] = {
+            text: text,
+            realText: defaultText,
+            hiddenInput: hiddenInput, // hiddenInputへの参照を保存
+            isPassword: isPassword,
+            isHidden: isPassword
+        };
+    
+        if (isPassword) {
+            const toggleButton = this.createHighQualityText(x + ru.toPixels(19), y - ru.toPixels(2), '👁', {
+                fontSize: ru.fontSize.small,
+                fontFamily: 'Arial, sans-serif',
+                color: '#000000'
+            }).setInteractive();
+    
+            this[inputName].toggleButton = toggleButton; // トグルボタンへの参照を保存
+    
+            toggleButton.on('pointerdown', () => {
+                this[inputName].isHidden = !this[inputName].isHidden;
+                this.updatePasswordDisplay(inputName);
+            });
+        }
+    
+        return { field, text };
+    }
+
+    updatePasswordDisplay(inputName) {
+        const input = this[inputName];
+        if (input.isPassword) {
+            input.text.setText(input.isHidden ? '●'.repeat(input.realText.length) : input.realText);
+        } else {
+            input.text.setText(input.realText);
+        }
     }
 
     resetInputFields() {
@@ -85,69 +155,5 @@ export class Login extends Scene {
         const textObject = this.add.text(x, y, text, style);
         textObject.setScale(1 / highResScale);
         return textObject;
-    }
-
-    createInputField(x, y, defaultText, inputName, isPassword = false) {
-        const ru = createRelativeUnits(this);
-        
-        const field = this.add.rectangle(x, y, ru.toPixels(50), ru.toPixels(10), 0xffffff)
-            .setOrigin(0.5)
-            .setInteractive();
-
-        const text = this.createHighQualityText(x - ru.toPixels(22), y - ru.toPixels(2), isPassword ? '●'.repeat(defaultText.length) : defaultText, {
-            fontSize: ru.fontSize.small,
-            color: '#000000',
-            fontFamily: 'Arial, sans-serif'
-        });
-
-        this[inputName] = {
-            text: text,
-            realText: defaultText,
-            isPassword: isPassword,
-            isHidden: isPassword
-        };
-
-        field.on('pointerdown', () => {
-            this.focusedInput = inputName;
-            field.setStrokeStyle(ru.toPixels(0.3), 0x0000ff);
-        });
-
-        if (isPassword) {
-            const toggleButton = this.createHighQualityText(x + ru.toPixels(19), y - ru.toPixels(2), '👁', {
-                fontSize: ru.fontSize.small,
-                fontFamily: 'Arial, sans-serif',
-                color: '#000000'
-            }).setInteractive();
-
-            this[inputName].toggleButton = toggleButton; // トグルボタンへの参照を保存
-
-            toggleButton.on('pointerdown', () => {
-                this[inputName].isHidden = !this[inputName].isHidden;
-                this.updatePasswordDisplay(inputName);
-            });
-        }
-
-        return { field, text };
-    }
-
-    handleKeyDown(event) {
-        if (!this.focusedInput) return;
-
-        const input = this[this.focusedInput];
-        if (event.keyCode === 8) {
-            input.realText = input.realText.slice(0, -1);
-        } else if (event.keyCode >= 32 && event.keyCode <= 126) {
-            input.realText += event.key;
-        }
-        this.updatePasswordDisplay(this.focusedInput);
-    }
-
-    updatePasswordDisplay(inputName) {
-        const input = this[inputName];
-        if (input.isPassword) {
-            input.text.setText(input.isHidden ? '●'.repeat(input.realText.length) : input.realText);
-        } else {
-            input.text.setText(input.realText);
-        }
     }
 }

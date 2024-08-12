@@ -55,6 +55,9 @@ const config = {
         Block,
         Mario
     ],
+    dom: {
+        createContainer: true
+    },
     physics: {
         default: 'arcade',
         arcade: {
