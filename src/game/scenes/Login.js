@@ -60,6 +60,7 @@ export class Login extends Scene {
             // パスワードチェック
             if (password === 'モロッコ' || password === 'もろっこ') {
                 alert('正解です');
+                this.scene.start('Stop');
             } else {
                 this.errorMessage.setText('パスワードが間違っています');
             }

@@ -70,11 +70,32 @@ function App ()
         
     }
 
+    // インラインスタイルを適用
+    const appStyle = {
+        height: '100%',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        overflow: 'hidden',
+        position: 'relative',
+        touchAction: 'none',
+    };
+
+    const htmlBodyStyle = {
+        height: '100%',
+        margin: 0,
+        overflow: 'hidden',
+        touchAction: 'manipulation',
+        WebkitOverflowScrolling: 'touch', // iOSでのスムーズスクロール
+    };
+
     return (
-        <div id="app">
-            <PhaserGame ref={phaserRef} currentActiveScene={currentScene} />
+        <div style={htmlBodyStyle}>
+            <div id="app" style={appStyle}>
+                <PhaserGame ref={phaserRef} currentActiveScene={currentScene} />
+            </div>
         </div>
     )
 }
 
-export default App
+export default App;
