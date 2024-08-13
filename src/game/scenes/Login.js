@@ -83,7 +83,6 @@ export class Login extends Scene {
             fontFamily: 'Arial, sans-serif'
         });
     
-        // rexhiddeninputtextpluginを使用して入力フィールドを作成
         const hiddenInput = this.plugins.get('rexhiddeninputtextplugin').add(text, {
             type: 'text',
             enterClose: false,
@@ -91,20 +90,20 @@ export class Login extends Scene {
                 field.setStrokeStyle(ru.toPixels(0.3), 0x0000ff);
             },
             onClose: (textObject) => {
-                field.setStrokeStyle(); // ストロークをクリア
+                field.setStrokeStyle();
             },
             onUpdate: (text, textObject, hiddenInputText) => {
-                // 入力されたテキストをリアルタイムでrealTextに保存
                 this[inputName].realText = text;
-                return text; // これによりテキストがPhaserのテキストオブジェクトに反映される
+                this.updatePasswordDisplay(inputName);
+                return this[inputName].displayText;
             }
         });
     
-        // 入力フィールドの状態を保存
         this[inputName] = {
             text: text,
             realText: defaultText,
-            hiddenInput: hiddenInput, // hiddenInputへの参照を保存
+            displayText: isPassword ? '●'.repeat(defaultText.length) : defaultText,
+            hiddenInput: hiddenInput,
             isPassword: isPassword,
             isHidden: isPassword
         };
@@ -116,7 +115,7 @@ export class Login extends Scene {
                 color: '#000000'
             }).setInteractive();
     
-            this[inputName].toggleButton = toggleButton; // トグルボタンへの参照を保存
+            this[inputName].toggleButton = toggleButton;
     
             toggleButton.on('pointerdown', () => {
                 this[inputName].isHidden = !this[inputName].isHidden;
@@ -130,9 +129,11 @@ export class Login extends Scene {
     updatePasswordDisplay(inputName) {
         const input = this[inputName];
         if (input.isPassword) {
-            input.text.setText(input.isHidden ? '●'.repeat(input.realText.length) : input.realText);
+            input.displayText = input.isHidden ? '●'.repeat(input.realText.length) : input.realText;
+            input.text.setText(input.displayText);
         } else {
-            input.text.setText(input.realText);
+            input.displayText = input.realText;
+            input.text.setText(input.displayText);
         }
     }
 
