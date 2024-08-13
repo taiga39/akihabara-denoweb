@@ -1,74 +1,72 @@
+import { createRelativeUnits } from '../main';
+
 export default class SpeechBubble extends Phaser.GameObjects.Container {
     constructor(scene, x, y, width, height, text, imageKey = 'kairu') {
         super(scene, x, y);
 
+        const ru = createRelativeUnits(scene);
         this.bubbleElements = [];
 
-        const bubblePadding = 4;
-        const scaleFactor = 4;
-        const fontSize = 12;
-        const lineSpacing = 5;
-        const fixedImageSize = 80; // 画像の固定サイズ（ピクセル）
-        const triangleHeight = 20; // 三角形の高さ
-        const buttonFontSize = 8; // ボタンの文字サイズ
-        const buttonPadding = 10; // ボタンの内側の余白
-        const buttonSpacing = 50; // ボタン間の間隔
+        const bubblePadding = ru.toPixels(2);
+        const topPadding = ru.toPixels(8);  // 上部のパディングを追加
+        const fontSize = ru.fontSize.small;
+        const lineSpacing = ru.toPixels(1);
+        const fixedImageSize = ru.toPixels(20);
+        const triangleHeight = ru.toPixels(5);
+        const buttonFontSize = ru.fontSize.small;
+        const buttonPadding = ru.toPixels(3);
+        const buttonSpacing = ru.toPixels(5);
 
         // 吹き出しの背景
         this.bubble = scene.add.graphics({ x: 0, y: 0 });
-        this.bubble.fillStyle(0xFFFFA0, 1);  // 黄色
-        this.bubble.fillRoundedRect(0, 0, width, height + bubblePadding * 2, 16);
+        this.bubble.fillStyle(0xFFFFA0, 1);
+        this.bubble.fillRoundedRect(0, 0, width, height, ru.toPixels(4));
 
         // 吹き出しの尖った部分（右寄りに調整）
-        const triangleX = width * 0.75; // 右側に配置（幅の75%の位置）
-        this.bubble.fillTriangle(triangleX - 10, height + bubblePadding * 2, triangleX, height + bubblePadding * 2 + triangleHeight, triangleX + 10, height + bubblePadding * 2);
+        const triangleX = width * 0.75;
+        this.bubble.fillTriangle(
+            triangleX - ru.toPixels(2), height,
+            triangleX, height + triangleHeight,
+            triangleX + ru.toPixels(2), height
+        );
 
-        // グラフィックスを先に追加
         this.add(this.bubble);
         this.bubbleElements.push(this.bubble);
 
         // テキストを@で分割
         const lines = text.split('@');
 
-        // テキストオブジェクトの配列
-        this.textObjects = [];
-
         // 各行のテキストを作成
+        const textAreaHeight = height - buttonFontSize - buttonPadding * 4 - topPadding;
         lines.forEach((line, index) => {
-            const textObject = scene.add.text(0, 0, line, {
-                fontSize: fontSize * scaleFactor + 'px',
+            const textObject = scene.add.text(width / 2, 0, line, {
+                fontSize: fontSize,
                 color: '#000000',
-                align: 'center'
+                align: 'center',
+                wordWrap: { width: width - bubblePadding * 2 }
             });
             textObject.setOrigin(0.5);
-            textObject.setScale(1 / scaleFactor);
             
-            // Y座標を計算（中央から上下に広がるように）
             const yOffset = (index - (lines.length - 1) / 2) * (fontSize + lineSpacing);
-            textObject.setPosition(width / 2, height / 2 + yOffset + bubblePadding - 20); // ボタンのスペースを確保するために少し上に移動
+            textObject.setY((textAreaHeight / 2) + yOffset + topPadding);  // topPadding を加算
 
-            this.textObjects.push(textObject);
             this.add(textObject);
             this.bubbleElements.push(textObject);
         });
 
         // ボタンを作成
         const createButton = (x, y, text) => {
-            const buttonText = scene.add.text(0, 0, text, {
-                fontSize: buttonFontSize * scaleFactor + 'px',
+            const buttonText = scene.add.text(x, y, text, {
+                fontSize: buttonFontSize,
                 color: '#000000'
             }).setOrigin(0.5);
 
-            buttonText.setScale(1 / scaleFactor);
-
-            const buttonWidth = (buttonText.width * buttonText.scaleX) + buttonPadding * 2;
-            const buttonHeight = (buttonText.height * buttonText.scaleY) + buttonPadding * 2;
+            const buttonWidth = Math.max(buttonText.width + buttonPadding * 2, ru.toPixels(15));
+            const buttonHeight = buttonText.height + buttonPadding * 2;
 
             const button = scene.add.graphics();
             button.fillStyle(0xDDDDDD, 1);
-            button.fillRoundedRect(x - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight, 8);
-            
-            buttonText.setPosition(x, y);
+            button.fillRoundedRect(x - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight, ru.toPixels(2));
             
             button.setInteractive(new Phaser.Geom.Rectangle(x - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight), Phaser.Geom.Rectangle.Contains);
             
@@ -76,19 +74,19 @@ export default class SpeechBubble extends Phaser.GameObjects.Container {
             this.add(buttonText);
             this.bubbleElements.push(button, buttonText);
             
-            return { button, buttonText };
+            return { button, buttonText, width: buttonWidth };
         };
 
         // ボタンのY座標
-        const buttonY = height - buttonFontSize - buttonPadding * 2 + 10;
+        const buttonY = height - buttonFontSize - buttonPadding * 2;
 
         // 「いいえ」ボタン
-        const noButton = createButton(width / 2 - buttonSpacing / 2, buttonY, 'いいえ');
+        const noButton = createButton(width / 4, buttonY*1.2, 'いいえ');
 
         // 「はい」ボタン
-        const yesButton = createButton(width / 2 + buttonSpacing / 2, buttonY, 'はい');
+        const yesButton = createButton(width * 3 / 4, buttonY*1.2, 'はい');
 
-        // 「はい」ボタンにクリックイベントを追加
+        // ボタンのイベント
         yesButton.button.on('pointerdown', () => {
             alert('はいが押されました');
         });
@@ -98,29 +96,25 @@ export default class SpeechBubble extends Phaser.GameObjects.Container {
         });
 
         // 画像を追加
-        this.image = scene.add.image(triangleX + 10, height + bubblePadding * 2 + triangleHeight, imageKey);
-        this.image.setOrigin(0.5, 0); // 画像の上端中央を基準点に
-        this.image.setDisplaySize(fixedImageSize, fixedImageSize); // 画像サイズを固定
+        this.image = scene.add.image(triangleX, height + triangleHeight, imageKey);
+        this.image.setOrigin(0.5, 0);
+        this.image.setDisplaySize(fixedImageSize, fixedImageSize);
         this.add(this.image);
 
-        // 画像をインタラクティブにし、クリック/タップ可能にする
         this.image.setInteractive();
-
-        // 画像がクリック/タップされたときのイベントリスナーを追加
         this.image.on('pointerdown', this.toggleBubbleVisibility, this);
 
-        // 吹き出しの初期状態を非表示に設定
-        this.setBubbleVisibility(false);
+        // 吹き出しの初期状態を表示に設定
+        this.setBubbleVisibility(true);
 
         scene.add.existing(this);
+        console.log('SpeechBubble elements:', this.list.length);
     }
 
-    // 吹き出しの表示/非表示を切り替えるメソッド
     toggleBubbleVisibility() {
         this.setBubbleVisibility(!this.bubble.visible);
     }
 
-    // 吹き出しの表示/非表示を設定するメソッド
     setBubbleVisibility(isVisible) {
         this.bubbleElements.forEach(element => {
             element.setVisible(isVisible);

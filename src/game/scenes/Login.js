@@ -1,5 +1,6 @@
 import { Scene } from 'phaser';
 import { createRelativeUnits } from '../main';
+import SpeechBubble from '../component/SpeechBubble';
 
 export class Login extends Scene {
     constructor() {
@@ -9,6 +10,7 @@ export class Login extends Scene {
     }
 
     preload() {
+        this.load.image('kairu', 'path/to/kairu/image.png'); // 'kairu' 画像のパスを適切に設定してください
         // rexhiddeninputtextplugin を読み込む
         this.load.plugin('rexhiddeninputtextplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexhiddeninputtextplugin.min.js', true);
     }
@@ -68,6 +70,25 @@ export class Login extends Scene {
             // 初期文言をリセット
             this.resetInputFields();
         });
+
+        const bubbleWidth = ru.toPixels(60);
+        const bubbleHeight = ru.toPixels(30);
+        const bubbleX = this.scale.width - bubbleWidth - ru.toPixels(5);
+        const bubbleY = this.scale.height - bubbleHeight - ru.toPixels(25);
+    
+        const speechBubble = new SpeechBubble(
+            this,
+            bubbleX,
+            bubbleY,
+            bubbleWidth,
+            bubbleHeight,
+            "こんにちは！@これは@吹き出しです。"
+        );
+    
+        // SpeechBubble を最前面に表示
+        this.children.bringToTop(speechBubble);
+    
+        console.log('SpeechBubble created:', { x: bubbleX, y: bubbleY, width: bubbleWidth, height: bubbleHeight });
     }
 
     createInputField(x, y, defaultText, inputName, isPassword = false) {
