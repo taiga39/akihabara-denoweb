@@ -11,7 +11,7 @@ export default class SpeechBubble extends Phaser.GameObjects.Container {
         const topPadding = ru.toPixels(8);  // 上部のパディングを追加
         const fontSize = ru.fontSize.small;
         const lineSpacing = ru.toPixels(1);
-        const fixedImageSize = ru.toPixels(20);
+        const fixedImageSize = ru.toPixels(30);
         const triangleHeight = ru.toPixels(5);
         const buttonFontSize = ru.fontSize.small;
         const buttonPadding = ru.toPixels(3);
@@ -96,7 +96,7 @@ export default class SpeechBubble extends Phaser.GameObjects.Container {
         });
 
         // 画像を追加
-        this.image = scene.add.image(triangleX, height + triangleHeight, imageKey);
+        this.image = scene.add.image(triangleX, height * 0.9 + triangleHeight, imageKey);
         this.image.setOrigin(0.5, 0);
         this.image.setDisplaySize(fixedImageSize, fixedImageSize);
         this.add(this.image);

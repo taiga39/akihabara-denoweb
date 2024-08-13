@@ -74,7 +74,7 @@ export class Login extends Scene {
         const bubbleWidth = ru.toPixels(60);
         const bubbleHeight = ru.toPixels(30);
         const bubbleX = this.scale.width - bubbleWidth - ru.toPixels(5);
-        const bubbleY = this.scale.height - bubbleHeight - ru.toPixels(25);
+        const bubbleY = this.scale.height - bubbleHeight - ru.toPixels(30);
     
         const speechBubble = new SpeechBubble(
             this,
