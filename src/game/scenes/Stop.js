@@ -1,6 +1,9 @@
 import { EventBus } from '../EventBus';
 import { Scene } from 'phaser';
 
+import { createRelativeUnits } from '../main';
+import SpeechBubble from '../component/SpeechBubble';
+
 export class Stop extends Scene {
     constructor() {
         super('Stop');
@@ -15,37 +18,73 @@ export class Stop extends Scene {
     create() {
         const width = this.scale.width;
         const height = this.scale.height;
+        const ru = createRelativeUnits(this);
 
         this.add.image(width / 2, height / 2, 'background').setDisplaySize(width, height);
 
-        // スタートボタン
-        this.add.text(width * 0.5, height * 0.8, 'START', { fontSize: `${height * 0.05}px`, fill: '#000' })
-            .setOrigin(0.5)
-            .setInteractive()
+        // STARTボタン（赤い丸に白文字）
+        const startButton = this.add.circle(width * 0.5, height * 0.8, ru.toPixels(10), 0xff0000);
+        const startText = this.add.text(width * 0.5, height * 0.8, 'START', { 
+            fontSize: `${ru.fontSize.medium}px`, 
+            fill: '#fff',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        startButton.setInteractive()
             .on('pointerdown', () => this.startAllSpins());
 
-        // リールとストップボタンの作成
+        // リールとSTOPボタンの作成
         for (let i = 0; i < 3; i++) {
             const x = width * (0.25 + i * 0.25);
             const reelY = height * 0.4;
             
-            const reel = this.add.text(x, reelY, this.symbols[this.currentIndexes[i]], { fontSize: `${height * 0.1}px`, fill: '#fff' })
+            // 背景の白い四角形を追加
+            const background = this.add.rectangle(x, reelY, width * 0.15, height * 0.15, 0xffffff);
+            background.setOrigin(0.5);
+
+            // リールのテキストを更新
+            const reel = this.add.text(x, reelY, this.symbols[this.currentIndexes[i]], { 
+                fontSize: `${height * 0.15}px`, 
+                fill: '#000',
+                fontStyle: 'bold'
+            })
                 .setOrigin(0.5)
                 .setInteractive()
                 .on('pointerdown', () => this.onReelClick(i));
             this.reels.push(reel);
 
-            this.add.text(x, height * 0.6, 'STOP', { fontSize: `${height * 0.05}px`, fill: '#f00' })
-                .setOrigin(0.5)
-                .setInteractive()
+            // STOPボタン（黄色い丸に黒文字）
+            const stopButton = this.add.circle(x, height * 0.6, ru.toPixels(8), 0xffff00);
+            const stopText = this.add.text(x, height * 0.6, 'STOP', { 
+                fontSize: `${ru.fontSize.small}px`, 
+                fill: '#000',
+                fontStyle: 'bold'
+            }).setOrigin(0.5);
+            stopButton.setInteractive()
                 .on('pointerdown', () => this.stopSpin(i));
 
             // 各リールの下にセレクトボックスを作成
-            this.createSelectBox(i, x, height * 0.7);
+            this.createSelectBox(i, x, height * 0.8);
         }
 
         EventBus.emit('current-scene-ready', this);
         this.startAllSpins();
+
+        const bubbleWidth = ru.toPixels(60);
+        const bubbleHeight = ru.toPixels(30);
+        const bubbleX = this.scale.width - bubbleWidth - ru.toPixels(5);
+        const bubbleY = this.scale.height - bubbleHeight - ru.toPixels(30);
+    
+        const speechBubble = new SpeechBubble(
+            this,
+            bubbleX,
+            bubbleY,
+            bubbleWidth,
+            bubbleHeight,
+            "こんにちは！@これは@吹き出しです。"
+        );
+    
+        // SpeechBubble を最前面に表示
+        this.children.bringToTop(speechBubble);
     }
 
     createSelectBox(index, x, y) {

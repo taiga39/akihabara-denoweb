@@ -10,8 +10,7 @@ export class Login extends Scene {
     }
 
     preload() {
-        this.load.image('kairu', 'path/to/kairu/image.png'); // 'kairu' 画像のパスを適切に設定してください
-        // rexhiddeninputtextplugin を読み込む
+        this.load.image('kairu', 'path/to/kairu/image.png');
         this.load.plugin('rexhiddeninputtextplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexhiddeninputtextplugin.min.js', true);
     }
 
@@ -38,7 +37,17 @@ export class Login extends Scene {
 
         this.createInputField(centerX, ru.toPixels(80), this.defaultPassword, 'passwordInput', true);
 
-        // エラーメッセージ用のテキストオブジェクトを作成
+        // トグルボタンの作成
+        this.passwordToggleButton = this.createHighQualityText(centerX + ru.toPixels(19), ru.toPixels(80) - ru.toPixels(2), '👁', {
+            fontSize: ru.fontSize.small,
+            fontFamily: 'Arial, sans-serif',
+            color: '#000000'
+        }).setInteractive();
+
+        this.passwordToggleButton.on('pointerdown', () => {
+            this.togglePasswordVisibility();
+        });
+
         this.errorMessage = this.createHighQualityText(centerX, ru.toPixels(90), '', {
             fontSize: ru.fontSize.small,
             color: '#FF0000',
@@ -55,11 +64,9 @@ export class Login extends Scene {
         }).setOrigin(0.5).setInteractive();
 
         loginButton.on('pointerdown', () => {
-            // realTextに保存された内容を取得
             const email = this.emailInput.realText;
             const password = this.passwordInput.realText;
             
-            // パスワードチェック
             if (password === 'モロッコ' || password === 'もろっこ') {
                 alert('正解です');
                 this.scene.start('Stop');
@@ -67,7 +74,6 @@ export class Login extends Scene {
                 this.errorMessage.setText('パスワードが間違っています');
             }
         
-            // 初期文言をリセット
             this.resetInputFields();
         });
 
@@ -85,10 +91,7 @@ export class Login extends Scene {
             "こんにちは！@これは@吹き出しです。"
         );
     
-        // SpeechBubble を最前面に表示
         this.children.bringToTop(speechBubble);
-    
-        console.log('SpeechBubble created:', { x: bubbleX, y: bubbleY, width: bubbleWidth, height: bubbleHeight });
     }
 
     createInputField(x, y, defaultText, inputName, isPassword = false) {
@@ -113,63 +116,53 @@ export class Login extends Scene {
             onClose: (textObject) => {
                 field.setStrokeStyle();
             },
-            onUpdate: (text, textObject, hiddenInputText) => {
+            onUpdate: (text, textObject) => {
                 this[inputName].realText = text;
-                this.updatePasswordDisplay(inputName);
-                return this[inputName].displayText;
+                if (isPassword) {
+                    this.updatePasswordDisplay();
+                }
+                return this.getDisplayText(inputName);
             }
         });
     
         this[inputName] = {
             text: text,
             realText: defaultText,
-            displayText: isPassword ? '●'.repeat(defaultText.length) : defaultText,
             hiddenInput: hiddenInput,
             isPassword: isPassword,
-            isHidden: isPassword
+            isVisible: false
         };
-    
-        if (isPassword) {
-            const toggleButton = this.createHighQualityText(x + ru.toPixels(19), y - ru.toPixels(2), '👁', {
-                fontSize: ru.fontSize.small,
-                fontFamily: 'Arial, sans-serif',
-                color: '#000000'
-            }).setInteractive();
-    
-            this[inputName].toggleButton = toggleButton;
-    
-            toggleButton.on('pointerdown', () => {
-                this[inputName].isHidden = !this[inputName].isHidden;
-                this.updatePasswordDisplay(inputName);
-            });
-        }
     
         return { field, text };
     }
 
-    updatePasswordDisplay(inputName) {
+    getDisplayText(inputName) {
         const input = this[inputName];
-        if (input.isPassword) {
-            input.displayText = input.isHidden ? '●'.repeat(input.realText.length) : input.realText;
-            input.text.setText(input.displayText);
-        } else {
-            input.displayText = input.realText;
-            input.text.setText(input.displayText);
+        if (input.isPassword && !input.isVisible) {
+            return '●'.repeat(input.realText.length);
         }
+        return input.realText;
+    }
+
+    updatePasswordDisplay() {
+        const displayText = this.getDisplayText('passwordInput');
+        this.passwordInput.text.setText(displayText);
+    }
+
+    togglePasswordVisibility() {
+        this.passwordInput.isVisible = !this.passwordInput.isVisible;
+        this.updatePasswordDisplay();
     }
 
     resetInputFields() {
         this.emailInput.realText = this.defaultEmail;
         this.emailInput.text.setText(this.defaultEmail);
+        this.emailInput.hiddenInput.resetText(this.defaultEmail);
 
         this.passwordInput.realText = this.defaultPassword;
-        this.passwordInput.isHidden = true; // パスワードを非表示状態に戻す
-        this.updatePasswordDisplay('passwordInput');
-
-        // パスワード表示/非表示トグルボタンのアイコンをリセット
-        if (this.passwordInput.toggleButton) {
-            this.passwordInput.toggleButton.setText('👁');
-        }
+        this.passwordInput.isVisible = false;
+        this.updatePasswordDisplay();
+        this.passwordToggleButton.setText('👁');
     }
 
     createHighQualityText(x, y, text, style) {
