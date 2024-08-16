@@ -72,9 +72,8 @@ export class Login extends Scene {
                 this.scene.start('Stop');
             } else {
                 this.errorMessage.setText('パスワードが間違っています');
+                this.resetPasswordField(); // パスワードフィールドを初期状態に戻す
             }
-        
-            this.resetInputFields();
         });
 
         const bubbleWidth = ru.toPixels(60);
@@ -101,7 +100,8 @@ export class Login extends Scene {
             .setOrigin(0.5)
             .setInteractive();
     
-        const text = this.createHighQualityText(x - ru.toPixels(22), y - ru.toPixels(2), isPassword ? '●'.repeat(defaultText.length) : defaultText, {
+        const displayText = isPassword ? '●'.repeat(defaultText.length) : defaultText;
+        const text = this.createHighQualityText(x - ru.toPixels(22), y - ru.toPixels(2), displayText, {
             fontSize: ru.fontSize.small,
             color: '#000000',
             fontFamily: 'Arial, sans-serif'
@@ -116,15 +116,21 @@ export class Login extends Scene {
             onClose: (textObject) => {
                 field.setStrokeStyle();
             },
-            onUpdate: (text, textObject) => {
-                this[inputName].realText = text;
-                if (isPassword) {
-                    this.updatePasswordDisplay();
+            onUpdate: (newText, textObject) => {
+                if (!newText.includes('●')) {
+                    this[inputName].realText = newText;
+                } else if (newText.length < this[inputName].realText.length) {
+                    this[inputName].realText = this[inputName].realText.slice(0, newText.length);
                 }
-                return this.getDisplayText(inputName);
+    
+                if (isPassword && !this[inputName].isVisible) {
+                    return '●'.repeat(this[inputName].realText.length);
+                } else {
+                    return this[inputName].realText;
+                }
             }
         });
-    
+
         this[inputName] = {
             text: text,
             realText: defaultText,
@@ -135,23 +141,26 @@ export class Login extends Scene {
     
         return { field, text };
     }
-
-    getDisplayText(inputName) {
-        const input = this[inputName];
-        if (input.isPassword && !input.isVisible) {
-            return '●'.repeat(input.realText.length);
-        }
-        return input.realText;
-    }
+    
 
     updatePasswordDisplay() {
-        const displayText = this.getDisplayText('passwordInput');
-        this.passwordInput.text.setText(displayText);
+        const input = this.passwordInput;
+        const displayText = input.isVisible ? input.realText : '●'.repeat(input.realText.length);
+        input.text.setText(displayText);
     }
 
     togglePasswordVisibility() {
         this.passwordInput.isVisible = !this.passwordInput.isVisible;
         this.updatePasswordDisplay();
+        this.passwordToggleButton.setText(this.passwordInput.isVisible ? '👁‍🗨' : '👁');
+    }
+
+    resetPasswordField() {
+        this.passwordInput.realText = this.defaultPassword;
+        this.passwordInput.isVisible = false;
+        this.updatePasswordDisplay();
+        this.passwordInput.hiddenInput.resetText('●'.repeat(this.defaultPassword.length));
+        this.passwordToggleButton.setText('👁');
     }
 
     resetInputFields() {
@@ -159,10 +168,7 @@ export class Login extends Scene {
         this.emailInput.text.setText(this.defaultEmail);
         this.emailInput.hiddenInput.resetText(this.defaultEmail);
 
-        this.passwordInput.realText = this.defaultPassword;
-        this.passwordInput.isVisible = false;
-        this.updatePasswordDisplay();
-        this.passwordToggleButton.setText('👁');
+        this.resetPasswordField(); // パスワードフィールドのリセットを呼び出す
     }
 
     createHighQualityText(x, y, text, style) {
