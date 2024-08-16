@@ -6,7 +6,7 @@ export class Login extends Scene {
     constructor() {
         super('Login');
         this.defaultEmail = 'kairu@kairu.com';
-        this.defaultPassword = 'ももももももなばしょ';
+        this.defaultPassword = '🍑(もも)×3=国名';
     }
 
     preload() {
