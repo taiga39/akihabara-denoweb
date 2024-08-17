@@ -120,6 +120,7 @@ export class Stop extends Scene {
             const selectedValue = selectBox.value;
             this.updateReel(index, selectedValue);
             this.hideSelectBox(index);
+            this.checkWinCondition()
         });
     }
 
@@ -177,6 +178,17 @@ export class Stop extends Scene {
             this.isSpinning[reelIndex] = false;
             if (this.spinEvents[reelIndex]) {
                 this.spinEvents[reelIndex].remove();
+            }
+            this.checkWinCondition();
+        }
+    }
+
+    checkWinCondition() {
+        if (!this.isSpinning.some(spinning => spinning)) {
+            const allSevens = this.currentIndexes.every(index => this.symbols[index] === '7');
+            if (allSevens) {
+                // 次のシーンに移動する処理を追加
+                this.scene.start('Mario'); // 'NextScene'は次のシーンの識別子に置き換えてください
             }
         }
     }
