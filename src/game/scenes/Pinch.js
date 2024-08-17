@@ -11,10 +11,20 @@ export class Pinch extends Scene {
         this.rowCount = 3;
         this.verticalPadding = 100;
         this.checkboxSize = 15;
+        this.imageLayout = [
+            2, 4, 5, 6, 8,
+            11, 1, 2, 4, 5,
+            6, 8, 9, 10, 11
+        ];
     }
 
     preload() {
         this.load.plugin('rexpinchplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexpinchplugin.min.js', true);
+        
+        // 画像の読み込み
+        for (let i = 1; i <= 11; i++) {
+            this.load.image(`rajio${i}`, `assets/rajio (${i}).png`);
+        }
     }
 
     create() {
@@ -23,7 +33,7 @@ export class Pinch extends Scene {
         // 白いオーバーレイを作成
         const overlay = this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0xffffff)
             .setOrigin(0)
-            .setDepth(1000); // 最前面に表示
+            .setDepth(1000);
     
         this.calculateSizes();
         this.createGrid();
@@ -40,7 +50,6 @@ export class Pinch extends Scene {
             camera.zoom *= scaleFactor;
             camera.zoom = Phaser.Math.Clamp(camera.zoom, this.minZoom, this.maxZoom);
             
-            // ズーム時にカメラの中心を維持
             const zoomChange = camera.zoom / oldZoom;
             camera.scrollX = (camera.scrollX + camera.width * 0.5) * zoomChange - camera.width * 0.5;
             camera.scrollY = (camera.scrollY + camera.height * 0.5) * zoomChange - camera.height * 0.5;
@@ -50,7 +59,6 @@ export class Pinch extends Scene {
     
         this.input.on('gameobjectdown', this.handleCellClick, this);
     
-        // 短い遅延の後、オーバーレイを削除
         this.time.delayedCall(100, () => {
             overlay.destroy();
         });
@@ -68,11 +76,6 @@ export class Pinch extends Scene {
         this.maxZoom = screenWidth / (this.cellSize * 3);
     }
 
-    showAllColumns(camera) {
-        camera.zoom = this.minZoom;
-        camera.centerOn(this.worldWidth / 2, this.worldHeight / 2);
-    }
-
     setInitialZoom(camera) {
         camera.zoom = this.maxZoom;
         camera.centerOn(this.worldWidth / 2, this.worldHeight / 2);
@@ -83,55 +86,36 @@ export class Pinch extends Scene {
         graphics.lineStyle(1, 0x000000, 0.4);
 
         const startY = this.verticalPadding;
+        let cellIndex = 0;
 
         for (let row = 0; row < this.rowCount; row++) {
             for (let col = 0; col < this.columnCount; col++) {
                 const x = col * this.cellSize;
                 const y = startY + row * this.cellSize;
-                this.createCell(x, y, this.cellSize);
+                this.createCell(x, y, this.cellSize, this.imageLayout[cellIndex]);
+                cellIndex++;
 
-                // グリッド線を描画
                 graphics.strokeRect(x, y, this.cellSize, this.cellSize);
             }
         }
     }
 
-    createCell(x, y, size) {
+    createCell(x, y, size, imageNumber) {
         const cell = this.add.rectangle(x, y, size, size, 0xffffff)
             .setOrigin(0)
             .setInteractive();
 
-        const shape = this.createRandomShape(x + size / 2, y + size / 2, size * 0.4);
-        const checkbox = this.createCheckbox(x + 5, y + 5, false); // チェックボックスの位置を調整
+        const image = this.add.image(x + size / 2, y + size / 2, `rajio${imageNumber}`)
+            .setDisplaySize(size * 0.8, size * 0.8);
 
-        this.cells.push({ cell, checkbox, shape });
-    }
+        const checkbox = this.createCheckbox(x + 5, y + 5, false);
 
-    createRandomShape(x, y, size) {
-        const graphics = this.add.graphics();
-        const shapeType = Phaser.Math.Between(0, 2);
-        const color = Phaser.Display.Color.RandomRGB().color;
-
-        graphics.fillStyle(color);
-
-        switch (shapeType) {
-            case 0: // 三角形
-                graphics.fillTriangle(x, y - size / 2, x - size / 2, y + size / 2, x + size / 2, y + size / 2);
-                break;
-            case 1: // 円
-                graphics.fillCircle(x, y, size / 2);
-                break;
-            case 2: // 四角形
-                graphics.fillRect(x - size / 2, y - size / 2, size, size);
-                break;
-        }
-
-        return graphics;
+        this.cells.push({ cell, checkbox, image });
     }
 
     createCheckbox(x, y, checked) {
         const graphics = this.add.graphics();
-        graphics.lineStyle(1, 0x000000); // 線の太さを1に変更
+        graphics.lineStyle(1, 0x000000);
         graphics.strokeRect(x, y, this.checkboxSize, this.checkboxSize);
 
         if (checked) {
@@ -142,7 +126,7 @@ export class Pinch extends Scene {
     }
 
     drawCheck(graphics, x, y) {
-        graphics.lineStyle(1, 0x000000); // 線の太さを1に変更
+        graphics.lineStyle(1, 0x000000);
         graphics.beginPath();
         graphics.moveTo(x + 3, y + this.checkboxSize / 2);
         graphics.lineTo(x + this.checkboxSize / 3, y + this.checkboxSize - 3);
@@ -157,7 +141,7 @@ export class Pinch extends Scene {
             const checked = !checkbox.data || !checkbox.data.get('checked');
             
             checkbox.clear();
-            checkbox.lineStyle(1, 0x000000); // 線の太さを1に変更
+            checkbox.lineStyle(1, 0x000000);
             checkbox.strokeRect(cellData.cell.x + 5, cellData.cell.y + 5, this.checkboxSize, this.checkboxSize);
             
             if (checked) {
