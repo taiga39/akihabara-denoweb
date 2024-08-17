@@ -8,14 +8,12 @@ export default class SpeechBubble extends Phaser.GameObjects.Container {
         this.bubbleElements = [];
 
         const bubblePadding = ru.toPixels(2);
-        const topPadding = ru.toPixels(8);  // 上部のパディングを追加
+        const topPadding = ru.toPixels(4);
         const fontSize = ru.fontSize.small;
-        const lineSpacing = ru.toPixels(1);
         const fixedImageSize = ru.toPixels(30);
         const triangleHeight = ru.toPixels(5);
         const buttonFontSize = ru.fontSize.small;
         const buttonPadding = ru.toPixels(3);
-        const buttonSpacing = ru.toPixels(5);
 
         // 吹き出しの背景
         this.bubble = scene.add.graphics({ x: 0, y: 0 });
@@ -33,26 +31,30 @@ export default class SpeechBubble extends Phaser.GameObjects.Container {
         this.add(this.bubble);
         this.bubbleElements.push(this.bubble);
 
-        // テキストを@で分割
-        const lines = text.split('@');
-
-        // 各行のテキストを作成
+        // テキストエリアの作成
         const textAreaHeight = height - buttonFontSize - buttonPadding * 4 - topPadding;
-        lines.forEach((line, index) => {
-            const textObject = scene.add.text(width / 2, 0, line, {
-                fontSize: fontSize,
-                color: '#000000',
-                align: 'center',
-                wordWrap: { width: width - bubblePadding * 2 }
-            });
-            textObject.setOrigin(0.5);
-            
-            const yOffset = (index - (lines.length - 1) / 2) * (fontSize + lineSpacing);
-            textObject.setY((textAreaHeight / 2) + yOffset + topPadding);  // topPadding を加算
-
-            this.add(textObject);
-            this.bubbleElements.push(textObject);
+        const textAreaWidth = width - bubblePadding * 2;
+        
+        const textObject = scene.add.text(bubblePadding, topPadding, '', {
+            fontSize: fontSize,
+            color: '#000000',
+            wordWrap: { 
+                width: textAreaWidth,
+                useAdvancedWrap: true
+            },
+            align: 'center'
         });
+
+        // テキストを明示的に設定し、折り返しを強制
+        textObject.setText(text);
+
+        // デバッグ情報
+        console.log('Text area width:', textAreaWidth);
+        console.log('Text object width:', textObject.width);
+        console.log('Word wrap width:', textObject.style.wordWrapWidth);
+
+        this.add(textObject);
+        this.bubbleElements.push(textObject);
 
         // ボタンを作成
         const createButton = (x, y, text) => {
@@ -81,10 +83,10 @@ export default class SpeechBubble extends Phaser.GameObjects.Container {
         const buttonY = height - buttonFontSize - buttonPadding * 2;
 
         // 「いいえ」ボタン
-        const noButton = createButton(width / 4, buttonY*1.2, 'いいえ');
+        const noButton = createButton(width / 4, buttonY * 1.2, 'いいえ');
 
         // 「はい」ボタン
-        const yesButton = createButton(width * 3 / 4, buttonY*1.2, 'はい');
+        const yesButton = createButton(width * 3 / 4, buttonY * 1.2, 'はい');
 
         // ボタンのイベント
         yesButton.button.on('pointerdown', () => {

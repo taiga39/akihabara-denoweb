@@ -87,7 +87,7 @@ export class Login extends Scene {
             bubbleY,
             bubbleWidth,
             bubbleHeight,
-            "こんにちは！@これは@吹き出しです。"
+            "こんにちは！これは吹き出しですaaaaaaaaaaaaaaaaaaaaafasdfasdfasfasdfasfasaaaaaaaa。sdasdfasdfasasdfasfasfasfasfasfss"
         );
     
         this.children.bringToTop(speechBubble);
