@@ -1,26 +1,39 @@
 import { EventBus } from '../EventBus';
-import { Scene } from 'phaser';
-
+import { BaseScene } from '../BaseScene';
 import { createRelativeUnits } from '../main';
 import SpeechBubble from '../component/SpeechBubble';
+import HamburgerMenu from '../component/HamburgerMenu';
+import { loadGameState, saveGameState } from '../hooks/gameState';
 
-export class Stop extends Scene {
+export class Stop extends BaseScene {
     constructor() {
         super('Stop');
         this.reels = [];
-        this.isSpinning = [false, false, false];
+        this.isSpinning = [true, true, true];  // 変更: 常に回転している状態で初期化
         this.symbols = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
         this.currentIndexes = [0, 0, 0];
         this.spinEvents = [];
         this.selectBoxes = [];
     }
 
-    create() {
+    createScene() {
+        console.log('Stop scene is being created');
         const width = this.scale.width;
         const height = this.scale.height;
         const ru = createRelativeUnits(this);
 
         this.add.image(width / 2, height / 2, 'background').setDisplaySize(width, height);
+
+        // 既存のselectBoxesを削除
+        this.selectBoxes.forEach(selectBox => {
+            if (selectBox && selectBox.parentNode) {
+                selectBox.parentNode.removeChild(selectBox);
+            }
+        });
+        this.selectBoxes = [];
+
+        // リールをクリア
+        this.reels = [];
 
         // STARTボタン（赤い丸に白文字）
         const startButton = this.add.circle(width * 0.5, height * 0.8, ru.toPixels(10), 0xff0000);
@@ -67,6 +80,8 @@ export class Stop extends Scene {
         }
 
         EventBus.emit('current-scene-ready', this);
+
+        // 全てのリールのスピンを開始
         this.startAllSpins();
 
         const bubbleWidth = ru.toPixels(60);
@@ -85,6 +100,10 @@ export class Stop extends Scene {
     
         // SpeechBubble を最前面に表示
         this.children.bringToTop(speechBubble);
+
+        // ゲーム状態を保存
+        this.saveCurrentState();
+        new HamburgerMenu(this);
     }
 
     createSelectBox(index, x, y) {
@@ -120,7 +139,7 @@ export class Stop extends Scene {
             const selectedValue = selectBox.value;
             this.updateReel(index, selectedValue);
             this.hideSelectBox(index);
-            this.checkWinCondition()
+            this.checkWinCondition();
         });
     }
 
@@ -153,17 +172,15 @@ export class Stop extends Scene {
     }
 
     startSpin(reelIndex) {
-        if (!this.isSpinning[reelIndex]) {
-            this.isSpinning[reelIndex] = true;
-            if (this.spinEvents[reelIndex]) {
-                this.spinEvents[reelIndex].remove();
-            }
-            this.spinEvents[reelIndex] = this.time.addEvent({
-                delay: 50,
-                callback: () => this.updateReelSpin(reelIndex),
-                loop: true
-            });
+        this.isSpinning[reelIndex] = true;  // 変更: 条件チェックを削除
+        if (this.spinEvents[reelIndex]) {
+            this.spinEvents[reelIndex].remove();
         }
+        this.spinEvents[reelIndex] = this.time.addEvent({
+            delay: 50,
+            callback: () => this.updateReelSpin(reelIndex),
+            loop: true
+        });
     }
 
     updateReelSpin(reelIndex) {
@@ -187,9 +204,22 @@ export class Stop extends Scene {
         if (!this.isSpinning.some(spinning => spinning)) {
             const allSevens = this.currentIndexes.every(index => this.symbols[index] === '7');
             if (allSevens) {
-                // 次のシーンに移動する処理を追加
-                this.scene.start('Mario'); // 'NextScene'は次のシーンの識別子に置き換えてください
+                this.startNextScene();
             }
         }
+    }
+
+    startNextScene() {
+        const gameState = loadGameState();
+        gameState.current_scene = 'KeyBoard';
+        gameState.answer_scene.push('Stop');
+        saveGameState(gameState);
+        this.scene.start('KeyBoard');
+    }
+
+    saveCurrentState() {
+        const gameState = loadGameState();
+        gameState.current_scene = 'Stop';
+        saveGameState(gameState);
     }
 }

@@ -1,8 +1,10 @@
-import { Scene } from 'phaser';
 import { createRelativeUnits } from '../main';
 import SpeechBubble from '../component/SpeechBubble';
+import HamburgerMenu from '../component/HamburgerMenu';
+import { BaseScene } from '../BaseScene';
+import { loadGameState, saveGameState } from '../hooks/gameState';
 
-export class Login extends Scene {
+export class Login extends BaseScene {
     constructor() {
         super('Login');
         this.defaultEmail = 'kairu@kairu.com';
@@ -14,7 +16,7 @@ export class Login extends Scene {
         this.load.plugin('rexhiddeninputtextplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexhiddeninputtextplugin.min.js', true);
     }
 
-    create() {
+    createScene() {
         const ru = createRelativeUnits(this);
         
         this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0xcccccc).setOrigin(0, 0);
@@ -69,7 +71,7 @@ export class Login extends Scene {
             
             if (password === 'モロッコ' || password === 'もろっこ') {
                 alert('正解です');
-                this.scene.start('Stop');
+                this.startNextScene();
             } else {
                 this.errorMessage.setText('パスワードが間違っています');
                 this.resetPasswordField(); // パスワードフィールドを初期状態に戻す
@@ -91,6 +93,8 @@ export class Login extends Scene {
         );
     
         this.children.bringToTop(speechBubble);
+
+        new HamburgerMenu(this);
     }
 
     createInputField(x, y, defaultText, inputName, isPassword = false) {
@@ -141,7 +145,6 @@ export class Login extends Scene {
     
         return { field, text };
     }
-    
 
     updatePasswordDisplay() {
         const input = this.passwordInput;
@@ -177,5 +180,15 @@ export class Login extends Scene {
         const textObject = this.add.text(x, y, text, style);
         textObject.setScale(1 / highResScale);
         return textObject;
+    }
+
+    startNextScene() {
+        const gameState = loadGameState();
+        gameState.current_scene = 'Stop';
+        if (!gameState.answer_scene.includes('Login')) {
+            gameState.answer_scene.push('Login');
+        }
+        saveGameState(gameState);
+        this.scene.start('Stop');
     }
 }
