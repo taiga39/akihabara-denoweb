@@ -8,6 +8,7 @@ import { CrossWord } from './scenes/CrossWord';
 import { Login } from './scenes/Login';
 import { Block } from './scenes/Block';
 import { Mario } from './scenes/Mario';
+import { KeyBoard } from './scenes/KeyBoard';
 
 import Phaser from 'phaser';
 import { Preloader } from './scenes/Preloader';
@@ -53,7 +54,8 @@ const config = {
         Pinch,
         CrossWord,
         Block,
-        Mario
+        Mario,
+        KeyBoard
     ],
     dom: {
         createContainer: true
