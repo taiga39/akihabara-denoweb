@@ -12,10 +12,12 @@ export class Pinch extends Scene {
         this.verticalPadding = 100;
         this.checkboxSize = 15;
         this.imageLayout = [
-            2, 4, 5, 6, 8,
+            3, 2, 4, 5, 7,  // 1行目に3と7を配置
             11, 1, 2, 4, 5,
             6, 8, 9, 10, 11
         ];
+        this.isFullView = false;
+        this.correctChecks = [1, 9, 10, 3, 7];
     }
 
     preload() {
@@ -63,7 +65,9 @@ export class Pinch extends Scene {
             overlay.destroy();
         });
 
-        const speechBubble = new SpeechBubble(this, 120, 250, 200, 100, "helloHEyheyhey@こんにちは！@これは吹き出しです。");
+        this.createDebugToggleButton();
+        this.createConfirmButton();
+        // const speechBubble = new SpeechBubble(this, 120, 250, 200, 100, "helloHEyheyhey@こんにちは！@これは吹き出しです。");
     }
 
     calculateSizes() {
@@ -110,7 +114,7 @@ export class Pinch extends Scene {
 
         const checkbox = this.createCheckbox(x + 5, y + 5, false);
 
-        this.cells.push({ cell, checkbox, image });
+        this.cells.push({ cell, checkbox, image, imageNumber });
     }
 
     createCheckbox(x, y, checked) {
@@ -123,15 +127,6 @@ export class Pinch extends Scene {
         }
 
         return graphics;
-    }
-
-    drawCheck(graphics, x, y) {
-        graphics.lineStyle(1, 0x000000);
-        graphics.beginPath();
-        graphics.moveTo(x + 3, y + this.checkboxSize / 2);
-        graphics.lineTo(x + this.checkboxSize / 3, y + this.checkboxSize - 3);
-        graphics.lineTo(x + this.checkboxSize - 3, y + 3);
-        graphics.strokePath();
     }
 
     handleCellClick(pointer, gameObject) {
@@ -155,6 +150,55 @@ export class Pinch extends Scene {
         }
     }
 
+    createConfirmButton() {
+        const button = this.add.text(200, 480, '確認', {
+            font: '20px Arial',
+            fill: '#ffffff',  // 文字色を白に変更
+            backgroundColor: '#0000ff',  // 背景色を青に変更
+            padding: { x: 10, y: 5 }
+        })
+        .setInteractive()
+        .on('pointerdown', () => this.checkAnswers());
+
+        button.setScrollFactor(0);  // カメラに追従しないように設定
+    }
+
+    checkAnswers() {
+        const checkedCells = this.cells.filter(cell => cell.checkbox.data && cell.checkbox.data.get('checked'));
+        const checkedNumbers = checkedCells.map(cell => cell.imageNumber);
+
+        const isCorrect = this.correctChecks.every(num => checkedNumbers.includes(num)) &&
+                          checkedNumbers.length === this.correctChecks.length;
+
+        if (isCorrect) {
+            alert('OK');
+        } else {
+            this.resetCheckboxes();
+        }
+    }
+
+    resetCheckboxes() {
+        this.cells.forEach(cellData => {
+            const { checkbox } = cellData;
+            checkbox.clear();
+            checkbox.lineStyle(1, 0x000000);
+            checkbox.strokeRect(cellData.cell.x + 5, cellData.cell.y + 5, this.checkboxSize, this.checkboxSize);
+            
+            if (checkbox.data) {
+                checkbox.data.set('checked', false);
+            }
+        });
+    }
+
+    drawCheck(graphics, x, y) {
+        graphics.lineStyle(1, 0x000000);
+        graphics.beginPath();
+        graphics.moveTo(x + 3, y + this.checkboxSize / 2);
+        graphics.lineTo(x + this.checkboxSize / 3, y + this.checkboxSize - 3);
+        graphics.lineTo(x + this.checkboxSize - 3, y + 3);
+        graphics.strokePath();
+    }
+
     limitCameraScroll(camera) {
         const zoom = camera.zoom;
         const leftBound = (this.worldWidth - this.scale.width / zoom) / 2;
@@ -164,5 +208,34 @@ export class Pinch extends Scene {
 
         camera.scrollX = Phaser.Math.Clamp(camera.scrollX, leftBound, rightBound);
         camera.scrollY = Phaser.Math.Clamp(camera.scrollY, topBound, bottomBound);
+    }
+
+    createDebugToggleButton() {
+        const button = this.add.text(200, 150, 'Toggle View', {
+            font: '16px Arial',
+            fill: '#000000',
+            backgroundColor: '#ffffff',
+            padding: { x: 10, y: 5 }
+        })
+        .setInteractive()
+        .on('pointerdown', () => this.toggleView());
+
+        button.setScrollFactor(0);  // カメラに追従しないように設定
+    }
+
+    toggleView() {
+        this.isFullView = !this.isFullView;
+        const camera = this.cameras.main;
+
+        if (this.isFullView) {
+            // 全体表示
+            camera.zoom = this.minZoom;
+        } else {
+            // 初期表示（3列表示）
+            camera.zoom = this.maxZoom;
+        }
+
+        camera.centerOn(this.worldWidth / 2, this.worldHeight / 2);
+        this.limitCameraScroll(camera);
     }
 }
