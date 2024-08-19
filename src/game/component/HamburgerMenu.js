@@ -10,6 +10,8 @@ export default class HamburgerMenu extends Phaser.GameObjects.Container {
         this.createMenu();
         this.positionMenu();
         scene.add.existing(this);
+
+        this.setDepth(1000);
     }
 
     createMenu() {
@@ -88,7 +90,8 @@ export default class HamburgerMenu extends Phaser.GameObjects.Container {
 
         button.add([itemBackground, textObject]);
 
-        button.setInteractive(new Phaser.Geom.Rectangle(0, 0, itemWidth - padding * 2, itemHeight), Phaser.Geom.Rectangle.Contains);
+        // ボタン全体をインタラクティブにする
+        button.setInteractive(new Phaser.Geom.Rectangle(-itemWidth + padding, 0, itemWidth, itemHeight), Phaser.Geom.Rectangle.Contains);
 
         button.on('pointerover', () => itemBackground.setFillStyle(0x333333));
         button.on('pointerout', () => itemBackground.setFillStyle(0x000000));

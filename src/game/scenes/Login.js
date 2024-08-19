@@ -12,7 +12,6 @@ export class Login extends BaseScene {
     }
 
     preload() {
-        this.load.image('kairu', 'path/to/kairu/image.png');
         this.load.plugin('rexhiddeninputtextplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexhiddeninputtextplugin.min.js', true);
         this.load.svg('eye-icon', 'assets/eye.svg');
     }
