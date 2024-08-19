@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { createRelativeUnits } from '../main';
-import { loadGameState, saveGameState } from '../hooks/gameState';
+import { loadGameState } from '../hooks/gameState';
 
 export default class HamburgerMenu extends Phaser.GameObjects.Container {
     constructor(scene) {
@@ -28,7 +28,7 @@ export default class HamburgerMenu extends Phaser.GameObjects.Container {
         const menuItems = this.scene.add.container(0, 0);
 
         // Current Scene
-        this.addMenuItem(menuItems, gameState.current_scene, 0, itemWidth, itemHeight, padding);
+        this.addMenuItem(menuItems, "現在の問題", 0, itemWidth, itemHeight, padding);
 
         // Completed Scenes
         completedScenes.forEach((scene, index) => {
@@ -62,25 +62,40 @@ export default class HamburgerMenu extends Phaser.GameObjects.Container {
     addMenuItem(container, text, index, itemWidth, itemHeight, padding) {
         const itemBackground = this.scene.add.rectangle(0, 0, itemWidth - padding * 2, itemHeight, 0x000000);
         itemBackground.setOrigin(1, 0);
-        
+
         const textObject = this.scene.add.text(0, 0, text, {
             fontSize: this.relativeUnits.fontSize.medium,
-            color: '#ffffff'
-        }).setOrigin(1, 0.5);
-    
-        const button = this.scene.add.container(0, (itemHeight + padding) * index + padding, [itemBackground, textObject]);
+            color: '#ffffff',
+            wordWrap: { width: itemWidth - padding * 4 }
+        })
+        .setOrigin(0, 0)
+        .setPadding(4);  // パディングを追加して文字が欠けないように調整
+
+        // テキストが項目の幅を超える場合、スケールを調整
+        const maxTextWidth = itemWidth - padding * 4;
+        if (textObject.width > maxTextWidth) {
+            const scale = maxTextWidth / textObject.width;
+            textObject.setScale(scale);
+        }
+
+        const button = this.scene.add.container(0, (itemHeight + padding) * index + padding);
         button.setSize(itemWidth - padding * 2, itemHeight);
-        
-        textObject.setPosition(-padding, itemHeight / 2);
-        
+
+        // テキストの位置を再調整
+        const textX = -itemWidth + padding * 2;
+        const textY = padding;
+        textObject.setPosition(textX, textY);
+
+        button.add([itemBackground, textObject]);
+
         button.setInteractive(new Phaser.Geom.Rectangle(0, 0, itemWidth - padding * 2, itemHeight), Phaser.Geom.Rectangle.Contains);
-        
+
         button.on('pointerover', () => itemBackground.setFillStyle(0x333333));
         button.on('pointerout', () => itemBackground.setFillStyle(0x000000));
         button.on('pointerdown', () => {
-            console.log(`Selected: ${text}`);
             if (text !== '持ち物' && text !== '設定' && !text.startsWith('問題')) {
-                this.scene.scene.start(text);
+                const gameState = loadGameState();
+                this.scene.scene.start(gameState.current_scene);
             } else if (text.startsWith('問題')) {
                 const problemNumber = parseInt(text.replace('問題', ''));
                 const gameState = loadGameState();
@@ -90,7 +105,7 @@ export default class HamburgerMenu extends Phaser.GameObjects.Container {
             }
             // 持ち物と設定の処理はここに追加
         });
-    
+
         container.add(button);
     }
 
