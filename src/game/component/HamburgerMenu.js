@@ -105,6 +105,8 @@ export default class HamburgerMenu extends Phaser.GameObjects.Container {
                 if (gameState.answer_scene && gameState.answer_scene[problemNumber - 1]) {
                     this.scene.scene.start(gameState.answer_scene[problemNumber - 1]);
                 }
+            } else if (text === '持ち物') {
+                localStorage.removeItem('gameState');
             }
             // 持ち物と設定の処理はここに追加
         });
