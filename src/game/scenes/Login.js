@@ -14,6 +14,7 @@ export class Login extends BaseScene {
     preload() {
         this.load.image('kairu', 'path/to/kairu/image.png');
         this.load.plugin('rexhiddeninputtextplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexhiddeninputtextplugin.min.js', true);
+        this.load.svg('eye-icon', 'assets/eye.svg');
     }
 
     createScene() {
@@ -40,11 +41,12 @@ export class Login extends BaseScene {
         this.createInputField(centerX, ru.toPixels(80), this.defaultPassword, 'passwordInput', true);
 
         // トグルボタンの作成
-        this.passwordToggleButton = this.createHighQualityText(centerX + ru.toPixels(19), ru.toPixels(80) - ru.toPixels(2), '👁', {
-            fontSize: ru.fontSize.small,
-            fontFamily: 'Arial, sans-serif',
-            color: '#000000'
-        }).setInteractive();
+        this.passwordToggleButton = this.add.image(centerX + ru.toPixels(19), ru.toPixels(82) - ru.toPixels(2), 'eye-icon')
+            .setOrigin(0.5)
+            .setInteractive()
+            .setScale(ru.toPixels(0.03)); // Adjust scale as needed
+
+        this.updatePasswordToggleIcon();
 
         this.passwordToggleButton.on('pointerdown', () => {
             this.togglePasswordVisibility();
@@ -74,7 +76,7 @@ export class Login extends BaseScene {
                 this.startNextScene();
             } else {
                 this.errorMessage.setText('パスワードが間違っています');
-                this.resetPasswordField(); // パスワードフィールドを初期状態に戻す
+                this.resetPasswordField();
             }
         });
 
@@ -155,7 +157,15 @@ export class Login extends BaseScene {
     togglePasswordVisibility() {
         this.passwordInput.isVisible = !this.passwordInput.isVisible;
         this.updatePasswordDisplay();
-        this.passwordToggleButton.setText(this.passwordInput.isVisible ? '👁‍🗨' : '👁');
+        this.updatePasswordToggleIcon();
+    }
+
+    updatePasswordToggleIcon() {
+        if (this.passwordInput.isVisible) {
+            this.passwordToggleButton.setAlpha(1); // Fully opaque
+        } else {
+            this.passwordToggleButton.setAlpha(0.5); // 50% transparent
+        }
     }
 
     resetPasswordField() {
@@ -163,7 +173,7 @@ export class Login extends BaseScene {
         this.passwordInput.isVisible = false;
         this.updatePasswordDisplay();
         this.passwordInput.hiddenInput.resetText('●'.repeat(this.defaultPassword.length));
-        this.passwordToggleButton.setText('👁');
+        this.updatePasswordToggleIcon();
     }
 
     resetInputFields() {
@@ -171,7 +181,7 @@ export class Login extends BaseScene {
         this.emailInput.text.setText(this.defaultEmail);
         this.emailInput.hiddenInput.resetText(this.defaultEmail);
 
-        this.resetPasswordField(); // パスワードフィールドのリセットを呼び出す
+        this.resetPasswordField();
     }
 
     createHighQualityText(x, y, text, style) {
