@@ -40,7 +40,7 @@ export class Login extends BaseScene {
         this.createInputField(centerX, ru.toPixels(80), this.defaultPassword, 'passwordInput', true);
 
         // トグルボタンの作成
-        this.passwordToggleButton = this.add.image(centerX + ru.toPixels(19), ru.toPixels(82) - ru.toPixels(2), 'eye-icon')
+        this.passwordToggleButton = this.add.image(centerX + ru.toPixels(29), ru.toPixels(82) - ru.toPixels(2), 'eye-icon')
             .setOrigin(0.5)
             .setInteractive()
             .setScale(ru.toPixels(0.03)); // Adjust scale as needed
@@ -101,12 +101,12 @@ export class Login extends BaseScene {
     createInputField(x, y, defaultText, inputName, isPassword = false) {
         const ru = createRelativeUnits(this);
     
-        const field = this.add.rectangle(x, y, ru.toPixels(50), ru.toPixels(10), 0xffffff)
+        const field = this.add.rectangle(x, y, ru.toPixels(70), ru.toPixels(10), 0xffffff)
             .setOrigin(0.5)
             .setInteractive();
     
         const displayText = isPassword ? '●'.repeat(defaultText.length) : defaultText;
-        const text = this.createHighQualityText(x - ru.toPixels(22), y - ru.toPixels(2), displayText, {
+        const text = this.createHighQualityText(x - ru.toPixels(30), y - ru.toPixels(2), displayText, {
             fontSize: ru.fontSize.small,
             color: '#000000',
             fontFamily: 'Arial, sans-serif'
