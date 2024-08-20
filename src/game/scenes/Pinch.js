@@ -134,30 +134,46 @@ export class Pinch extends Scene {
 
     createCheckbox(x, y, checked) {
         const graphics = this.add.graphics();
-        graphics.lineStyle(1, 0x000000);
-        graphics.strokeRect(x, y, this.checkboxSize, this.checkboxSize);
-
+        graphics.fillStyle(0x0000ff, 1);
+        graphics.fillCircle(x + this.checkboxSize / 2, y + this.checkboxSize / 2, this.checkboxSize / 2);
+    
+        // デフォルトでは非表示に設定
+        graphics.setVisible(false);
+    
         if (checked) {
             this.drawCheck(graphics, x, y);
         }
-
+    
         return graphics;
     }
-
+    
     handleCellClick(pointer, gameObject) {
         const cellData = this.cells.find(cell => cell.cell === gameObject);
         if (cellData) {
-            const { checkbox } = cellData;
+            const { checkbox, image } = cellData;
             const checked = !checkbox.data || !checkbox.data.get('checked');
-            
-            checkbox.clear();
-            checkbox.lineStyle(1, 0x000000);
-            checkbox.strokeRect(cellData.cell.x + 5, cellData.cell.y + 5, this.checkboxSize, this.checkboxSize);
-            
+    
+            checkbox.clear(); // グラフィックスをクリア
+    
             if (checked) {
+                // 青丸の描画
+                checkbox.fillStyle(0x0000ff, 1);
+                checkbox.fillCircle(cellData.cell.x + 5 + this.checkboxSize / 2, cellData.cell.y + 5 + this.checkboxSize / 2, this.checkboxSize / 2);
+                // チェックマークを描画
                 this.drawCheck(checkbox, cellData.cell.x + 5, cellData.cell.y + 5);
+    
+                // 画像を少し小さくする
+                image.setDisplaySize(image.displayWidth * 0.9, image.displayHeight * 0.9);
+            } else {
+                // チェックが外れたら、青丸を非表示にするためにクリア
+                checkbox.clear();
+    
+                // 画像のサイズを元に戻す
+                image.setDisplaySize(image.displayWidth / 0.9, image.displayHeight / 0.9);
             }
-            
+    
+            checkbox.setVisible(true); // チェックボックスを表示する
+    
             if (!checkbox.data) {
                 checkbox.setDataEnabled();
             }
@@ -214,11 +230,12 @@ export class Pinch extends Scene {
     }
 
     drawCheck(graphics, x, y) {
-        graphics.lineStyle(1, 0x000000);
+        // 白のチェックマークの描画
+        graphics.lineStyle(2, 0xffffff, 1);
         graphics.beginPath();
-        graphics.moveTo(x + 3, y + this.checkboxSize / 2);
-        graphics.lineTo(x + this.checkboxSize / 3, y + this.checkboxSize - 3);
-        graphics.lineTo(x + this.checkboxSize - 3, y + 3);
+        graphics.moveTo(x + 4, y + this.checkboxSize / 2);
+        graphics.lineTo(x + this.checkboxSize / 3, y + this.checkboxSize - 4);
+        graphics.lineTo(x + this.checkboxSize - 4, y + 4);
         graphics.strokePath();
     }
 
