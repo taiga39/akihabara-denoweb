@@ -2,6 +2,7 @@
 
 import { Scene } from 'phaser';
 import SpeechBubble from '../component/SpeechBubble';
+import HamburgerMenu from '../component/HamburgerMenu';
 
 export class Pinch extends Scene {
     constructor() {
@@ -18,6 +19,7 @@ export class Pinch extends Scene {
         ];
         this.isFullView = false;
         this.correctChecks = [1, 9, 10, 3, 7];
+        this.imagePadding = 0.05; // 画像間のマージンを小さくするために値を減らしました
     }
 
     preload() {
@@ -65,9 +67,22 @@ export class Pinch extends Scene {
             overlay.destroy();
         });
 
+        const instructionText = this.createHighQualityText(this.scale.width / 2, this.verticalPadding * 2, '看板の赤い文字\nをすべて選択してください', {
+            font: '3rem Arial',
+            fill: '#ffffff',
+            backgroundColor: '#0000ff',
+            padding: { x: 100, y: 5 }
+        })
+        .setOrigin(0.5)
+        .setDepth(1000)
+        .setScrollFactor(0);
+    
         this.createDebugToggleButton();
         this.createConfirmButton();
-        // const speechBubble = new SpeechBubble(this, 120, 250, 200, 100, "helloHEyheyhey@こんにちは！@これは吹き出しです。");
+        new HamburgerMenu(this);
+    
+        // 指示枠をカメラに追従させる
+        this.cameras.main.ignore([instructionBox, instructionText]);
     }
 
     calculateSizes() {
@@ -110,7 +125,7 @@ export class Pinch extends Scene {
             .setInteractive();
 
         const image = this.add.image(x + size / 2, y + size / 2, `rajio${imageNumber}`)
-            .setDisplaySize(size * 0.8, size * 0.8);
+            .setDisplaySize(size * (1 - this.imagePadding), size * (1 - this.imagePadding));
 
         const checkbox = this.createCheckbox(x + 5, y + 5, false);
 
@@ -151,16 +166,24 @@ export class Pinch extends Scene {
     }
 
     createConfirmButton() {
-        const button = this.add.text(200, 480, '確認', {
-            font: '20px Arial',
-            fill: '#ffffff',  // 文字色を白に変更
-            backgroundColor: '#0000ff',  // 背景色を青に変更
+        const button = this.createHighQualityText(220, 460, '確認', {
+            font: '3rem Arial',
+            fill: '#ffffff',
+            backgroundColor: '#0000ff',
             padding: { x: 10, y: 5 }
         })
         .setInteractive()
         .on('pointerdown', () => this.checkAnswers());
 
         button.setScrollFactor(0);  // カメラに追従しないように設定
+    }
+
+    createHighQualityText(x, y, text, style) {
+        const highResScale = 3;
+        style.fontSize *= highResScale;
+        const textObject = this.add.text(x, y, text, style);
+        textObject.setScale(1 / highResScale);
+        return textObject;
     }
 
     checkAnswers() {
@@ -199,19 +222,8 @@ export class Pinch extends Scene {
         graphics.strokePath();
     }
 
-    limitCameraScroll(camera) {
-        const zoom = camera.zoom;
-        const leftBound = (this.worldWidth - this.scale.width / zoom) / 2;
-        const rightBound = -leftBound;
-        const topBound = (this.worldHeight - this.scale.height / zoom) / 2;
-        const bottomBound = -topBound;
-
-        camera.scrollX = Phaser.Math.Clamp(camera.scrollX, leftBound, rightBound);
-        camera.scrollY = Phaser.Math.Clamp(camera.scrollY, topBound, bottomBound);
-    }
-
     createDebugToggleButton() {
-        const button = this.add.text(200, 150, 'Toggle View', {
+        const button = this.createHighQualityText(200, 150, 'Toggle View', {
             font: '16px Arial',
             fill: '#000000',
             backgroundColor: '#ffffff',
@@ -226,16 +238,66 @@ export class Pinch extends Scene {
     toggleView() {
         this.isFullView = !this.isFullView;
         const camera = this.cameras.main;
-
+    
+        // カメラの境界をリセット
+        camera.removeBounds();
+    
         if (this.isFullView) {
             // 全体表示
             camera.zoom = this.minZoom;
+            camera.centerOn(this.worldWidth / 2, this.worldHeight / 2);
         } else {
-            // 初期表示（3列表示）
+            // 3列表示
             camera.zoom = this.maxZoom;
+            
+            // 3列分の幅を計算
+            const threeColumnsWidth = this.cellSize * 3;
+            
+            // 画面中央に来るべき位置を計算
+            const centerX = this.worldWidth / 2;
+            const centerY = this.worldHeight / 2;
+            
+            // カメラの表示範囲を計算
+            const cameraWidth = this.scale.width / camera.zoom;
+            const cameraHeight = this.scale.height / camera.zoom;
+            
+            // カメラの位置を調整
+            camera.centerOn(centerX, centerY);
+            
+            // 横方向のスクロール範囲を制限
+            const minX = Math.max(0, centerX - threeColumnsWidth / 2);
+            const maxX = Math.min(this.worldWidth, centerX + threeColumnsWidth / 2);
+            camera.setBounds(minX, 0, maxX - minX, this.worldHeight);
         }
 
+
+        camera.centerOn(this.worldWidth / 2, this.worldHeight / 2);
+    
         camera.centerOn(this.worldWidth / 2, this.worldHeight / 2);
         this.limitCameraScroll(camera);
+    }
+    
+    limitCameraScroll(camera) {
+        const zoom = camera.zoom;
+        const bounds = camera.getBounds();
+        
+        if (bounds) {
+            const leftBound = bounds.x;
+            const rightBound = Math.max(leftBound, bounds.right - camera.width / zoom);
+            const topBound = bounds.y;
+            const bottomBound = Math.max(topBound, bounds.bottom - camera.height / zoom);
+    
+            camera.scrollX = Phather.Math.Clamp(camera.scrollX, leftBound, rightBound);
+            camera.scrollY = Phaser.Math.Clamp(camera.scrollY, topBound, bottomBound);
+        } else {
+            // 全体表示時の処理
+            const leftBound = 0;
+            const rightBound = Math.max(0, this.worldWidth - camera.width / zoom);
+            const topBound = 0;
+            const bottomBound = Math.max(0, this.worldHeight - camera.height / zoom);
+    
+            camera.scrollX = Phaser.Math.Clamp(camera.scrollX, leftBound, rightBound);
+            camera.scrollY = Phaser.Math.Clamp(camera.scrollY, topBound, bottomBound);
+        }
     }
 }

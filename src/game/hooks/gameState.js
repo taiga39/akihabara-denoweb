@@ -5,7 +5,7 @@ export const saveGameState = (state) => {
 export const loadGameState = () => {
     const savedState = localStorage.getItem('gameState');
     return savedState ? JSON.parse(savedState) : {
-        current_scene: 'Login',
+        current_scene: 'Pinch',
         answer_scene: []
     };
 };
