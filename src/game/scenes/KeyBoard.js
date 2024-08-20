@@ -85,7 +85,16 @@ export class KeyBoard extends BaseScene {
 
         // ハンバーガーメニューを作成
         const hamburgerMenu = new HamburgerMenu(this);
-        hamburgerMenu.setDepth(3);  // 最前面に表示
+        hamburgerMenu.setDepth(3); 
+
+        const backgroundZone = this.add.zone(0, 0, this.scale.width, this.scale.height);
+        backgroundZone.setOrigin(0);
+        backgroundZone.setInteractive();
+        backgroundZone.on('pointerdown', () => {
+            this.input.keyboard.clearCaptures();
+            this.inputText.setBlur();
+        });
+        backgroundZone.setDepth(0);
     }
 
     getYesterday() {
@@ -99,7 +108,7 @@ export class KeyBoard extends BaseScene {
 
     startNextScene() {
         const gameState = loadGameState();
-        gameState.current_scene = 'NextScene';  // 適切なシーン名に変更
+        gameState.current_scene = 'Mario';
         if (!gameState.answer_scene.includes('KeyBoard')) {
             gameState.answer_scene.push('KeyBoard');
         }

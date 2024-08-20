@@ -101,8 +101,6 @@ export class Stop extends BaseScene {
         // SpeechBubble を最前面に表示
         this.children.bringToTop(speechBubble);
 
-        // ゲーム状態を保存
-        this.saveCurrentState();
         new HamburgerMenu(this);
     }
 
@@ -212,14 +210,10 @@ export class Stop extends BaseScene {
     startNextScene() {
         const gameState = loadGameState();
         gameState.current_scene = 'KeyBoard';
-        gameState.answer_scene.push('Stop');
+        if (!gameState.answer_scene.includes('Stop')) {
+            gameState.answer_scene.push('Stop');
+        }
         saveGameState(gameState);
         this.scene.start('KeyBoard');
-    }
-
-    saveCurrentState() {
-        const gameState = loadGameState();
-        gameState.current_scene = 'Stop';
-        saveGameState(gameState);
     }
 }
