@@ -123,12 +123,16 @@ export class Pinch extends Scene {
         const cell = this.add.rectangle(x, y, size, size, 0xffffff)
             .setOrigin(0)
             .setInteractive();
-
+    
         const image = this.add.image(x + size / 2, y + size / 2, `rajio${imageNumber}`)
             .setDisplaySize(size * (1 - this.imagePadding), size * (1 - this.imagePadding));
-
+        
+        // 初期サイズを保存
+        image.initialWidth = image.displayWidth;
+        image.initialHeight = image.displayHeight;
+    
         const checkbox = this.createCheckbox(x + 5, y + 5, false);
-
+    
         this.cells.push({ cell, checkbox, image, imageNumber });
     }
 
@@ -218,14 +222,21 @@ export class Pinch extends Scene {
 
     resetCheckboxes() {
         this.cells.forEach(cellData => {
-            const { checkbox } = cellData;
+            const { checkbox, image } = cellData;
+    
+            // チェックボックスのグラフィックスをクリア
             checkbox.clear();
-            checkbox.lineStyle(1, 0x000000);
-            checkbox.strokeRect(cellData.cell.x + 5, cellData.cell.y + 5, this.checkboxSize, this.checkboxSize);
             
+            // チェックが外れた状態に戻す
             if (checkbox.data) {
                 checkbox.data.set('checked', false);
             }
+    
+            // 画像のサイズを初期サイズに戻す
+            image.setDisplaySize(image.initialWidth, image.initialHeight);
+    
+            // チェックボックスを非表示にする
+            checkbox.setVisible(false);
         });
     }
 
