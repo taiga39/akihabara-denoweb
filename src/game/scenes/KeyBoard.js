@@ -11,22 +11,36 @@ export class KeyBoard extends BaseScene {
 
     preload() {
         this.load.plugin('rexinputtextplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexinputtextplugin.min.js', true);
+        this.load.plugin('rexdragplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexdragplugin.min.js', true);
         this.load.image('keyboard', 'assets/keyboard.png');
+        this.load.image('forkeyboard', 'assets/Forkeyboard.png');
     }
 
     create() {
         const ru = createRelativeUnits(this);
         
-        // 背景
+        // Background
         this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0xeeeeee).setOrigin(0, 0);
         
-        // 1. キーボード画像の表示
-        const keyboardImage = this.add.image(this.scale.width / 2, this.scale.height * 0.3, 'keyboard');
-        const scaleFactor = (this.scale.width * 0.8) / keyboardImage.width;
-        keyboardImage.setScale(scaleFactor);
-        keyboardImage.setDepth(1);
+        // Add Forkeyboard image behind the main keyboard
+        const forkeyboardImage = this.add.image(this.scale.width / 2, this.scale.height * 0.3, 'forkeyboard');
+        const targetWidth = this.scale.width * 0.9;
+        const targetHeight = (forkeyboardImage.height * targetWidth) / forkeyboardImage.width;
+        forkeyboardImage.setDisplaySize(targetWidth, targetHeight);
+        forkeyboardImage.setDepth(100);
 
-        // 2. 入力フォームの作成
+        // Add main keyboard image (draggable)
+        const keyboardImage = this.add.image(this.scale.width / 2, this.scale.height * 0.3, 'keyboard');
+        keyboardImage.setDisplaySize(targetWidth, targetHeight);
+        keyboardImage.setDepth(200);
+
+        // Make the keyboard image draggable
+        this.plugins.get('rexdragplugin').add(keyboardImage, {
+            enable: true,
+            axis: 'both'
+        });
+
+        // Input form
         this.inputText = this.add.rexInputText(ru.toPixels(50), ru.toPixels(90), ru.toPixels(80), ru.toPixels(15), {
             type: 'text',
             text: '',
@@ -38,10 +52,10 @@ export class KeyBoard extends BaseScene {
             borderColor: '#000000',
             borderThickness: 2
         });
-        this.inputText.setDepth(2);
+        this.inputText.setDepth(3);
 
-        // 3. 回答ボタン
-        const answerButton =this.createHighQualityText(ru.toPixels(50), ru.toPixels(110), '回答する', {
+        // Answer button
+        const answerButton = this.createHighQualityText(ru.toPixels(50), ru.toPixels(110), '回答する', {
             fontSize: ru.fontSize.medium,
             fontFamily: 'Arial',
             color: '#ffffff',
@@ -50,7 +64,7 @@ export class KeyBoard extends BaseScene {
         })
         .setOrigin(0.5)
         .setInteractive()
-        .setDepth(2);
+        .setDepth(3);
 
         answerButton.on('pointerdown', () => {
             const userInput = this.inputText.text.trim().toLowerCase();
@@ -67,7 +81,7 @@ export class KeyBoard extends BaseScene {
             console.log('正解の曜日:', correctAnswer);
         });
 
-        // 吹き出し
+        // Speech bubble
         const bubbleWidth = ru.toPixels(60);
         const bubbleHeight = ru.toPixels(37);
         const bubbleX = this.scale.width - bubbleWidth - ru.toPixels(5);
@@ -81,11 +95,11 @@ export class KeyBoard extends BaseScene {
             bubbleHeight,
             "こんにちは！これは吹き出しです。"
         );
-        speechBubble.setDepth(2);
+        speechBubble.setDepth(3);
 
-        // ハンバーガーメニューを作成
+        // Hamburger menu
         const hamburgerMenu = new HamburgerMenu(this);
-        hamburgerMenu.setDepth(3); 
+        hamburgerMenu.setDepth(4);
 
         const backgroundZone = this.add.zone(0, 0, this.scale.width, this.scale.height);
         backgroundZone.setOrigin(0);

@@ -66,7 +66,9 @@ const config = {
             gravity: { y: 0 },
             debug: false
         }
-    }
+    },
+    resolution: window.devicePixelRatio,  // デバイスのピクセル密度に基づいた解像度
+    antialias: true, 
 };
 
 export function createRelativeUnits(scene) {
