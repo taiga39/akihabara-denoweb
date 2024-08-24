@@ -7,13 +7,17 @@ import HamburgerMenu from '../component/HamburgerMenu';
 export class KeyBoard extends BaseScene {
     constructor() {
         super('KeyBoard');
+        this.dpr = window.devicePixelRatio || 1;
+        this.isZoomed = false;
+        this.initialScale = null;
     }
 
     preload() {
         this.load.plugin('rexinputtextplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexinputtextplugin.min.js', true);
         this.load.plugin('rexdragplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexdragplugin.min.js', true);
+        
         this.load.image('keyboard', 'assets/keyboard.png');
-        this.load.image('forkeyboard', 'assets/Forkeyboard.png');
+        this.load.image('forkeyboard', 'assets/forkeyboard.jpg');
     }
 
     create() {
@@ -22,17 +26,23 @@ export class KeyBoard extends BaseScene {
         // Background
         this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0xeeeeee).setOrigin(0, 0);
         
-        // Add Forkeyboard image behind the main keyboard
-        const forkeyboardImage = this.add.image(this.scale.width / 2, this.scale.height * 0.3, 'forkeyboard');
-        const targetWidth = this.scale.width * 0.9;
-        const targetHeight = (forkeyboardImage.height * targetWidth) / forkeyboardImage.width;
-        forkeyboardImage.setDisplaySize(targetWidth, targetHeight);
-        forkeyboardImage.setDepth(100);
+        // Add Forkeyboard image
+        const forkeyboardImage = this.forkeyboardImage = this.add.image(this.scale.width / 2, this.scale.height * 0.3, 'forkeyboard');
+        this.optimizeImageDisplay(this.forkeyboardImage, 0.4, 0.35);
+        this.forkeyboardImage.setDepth(20);
+
+        this.plugins.get('rexdragplugin').add(forkeyboardImage, {
+            enable: true,
+            axis: 'both'
+        });
+
+        // 初期スケールを保存
+        this.initialScale = this.forkeyboardImage.scale;
 
         // Add main keyboard image (draggable)
         const keyboardImage = this.add.image(this.scale.width / 2, this.scale.height * 0.3, 'keyboard');
-        keyboardImage.setDisplaySize(targetWidth, targetHeight);
-        keyboardImage.setDepth(200);
+        this.optimizeImageDisplay(keyboardImage, 0.8, 0.35);
+        keyboardImage.setDepth(20);
 
         // Make the keyboard image draggable
         this.plugins.get('rexdragplugin').add(keyboardImage, {
@@ -66,49 +76,72 @@ export class KeyBoard extends BaseScene {
         .setInteractive()
         .setDepth(3);
 
-        answerButton.on('pointerdown', () => {
-            const userInput = this.inputText.text.trim().toLowerCase();
-            const correctAnswer = this.getYesterday();
-
-            if (userInput === correctAnswer) {
-                console.log('正解です！');
-                this.startNextScene();
-            } else {
-                console.log('不正解です。正解は ' + correctAnswer + ' でした。');
-            }
-
-            console.log('入力されたテキスト:', userInput);
-            console.log('正解の曜日:', correctAnswer);
+        this.plugins.get('rexdragplugin').add(answerButton, {
+            enable: true,
+            axis: 'both'
         });
 
-        // Speech bubble
-        const bubbleWidth = ru.toPixels(60);
-        const bubbleHeight = ru.toPixels(37);
-        const bubbleX = this.scale.width - bubbleWidth - ru.toPixels(5);
-        const bubbleY = this.scale.height - bubbleHeight - ru.toPixels(30);
+        answerButton.on('pointerdown', () => this.handleAnswer());
 
-        const speechBubble = new SpeechBubble(
-            this,
-            bubbleX,
-            bubbleY,
-            bubbleWidth,
-            bubbleHeight,
-            "こんにちは！これは吹き出しです。"
+        // Zoom button
+        const zoomButton = this.createHighQualityText(ru.toPixels(52), ru.toPixels(106), 'Zoom', {
+            fontSize: ru.fontSize.small,
+            fontFamily: 'Arial',
+            color: '#ffffff',
+            backgroundColor: '#4a4a4a',
+            padding: { x: ru.toPixels(6), y: ru.toPixels(4) }
+        })
+        .setOrigin(1, 0)
+        .setInteractive()
+        .setDepth(2);
+
+        zoomButton.on('pointerdown', () => this.toggleZoom());
+    }
+
+    optimizeImageDisplay(image, maxWidthRatio, maxHeightRatio) {
+        const logicalWidth = this.scale.width;
+        const logicalHeight = this.scale.height;
+        const maxWidth = logicalWidth * maxWidthRatio;
+        const maxHeight = logicalHeight * maxHeightRatio;
+
+        let scaleFactor = Math.min(
+            maxWidth / image.width,
+            maxHeight / image.height
         );
-        speechBubble.setDepth(3);
 
-        // Hamburger menu
-        const hamburgerMenu = new HamburgerMenu(this);
-        hamburgerMenu.setDepth(4);
+        // DPRを考慮してスケールを調整（画像が小さすぎる場合は拡大を制限）
+        scaleFactor = Math.min(scaleFactor, this.dpr);
 
-        const backgroundZone = this.add.zone(0, 0, this.scale.width, this.scale.height);
-        backgroundZone.setOrigin(0);
-        backgroundZone.setInteractive();
-        backgroundZone.on('pointerdown', () => {
-            this.input.keyboard.clearCaptures();
-            this.inputText.setBlur();
+        image.setScale(scaleFactor);
+
+        // WebGLレンダラーの場合、可能であればスムージングを設定
+        if (this.renderer.type === Phaser.WEBGL) {
+            image.texture.setFilter(Phaser.Textures.LINEAR);
+        }
+    }
+
+    toggleZoom() {
+        this.isZoomed = !this.isZoomed;
+        const newScale = this.isZoomed ? this.initialScale * 5 : this.initialScale;
+        
+        this.tweens.add({
+            targets: this.forkeyboardImage,
+            scale: newScale,
+            duration: 300,
+            ease: 'Power2'
         });
-        backgroundZone.setDepth(0);
+    }
+
+    handleAnswer() {
+        const userInput = this.inputText.text.trim().toLowerCase();
+        const correctAnswer = this.getYesterday();
+
+        if (userInput === correctAnswer) {
+            console.log('正解です！');
+            this.startNextScene();
+        } else {
+            console.log('不正解です。正解は ' + correctAnswer + ' でした。');
+        }
     }
 
     getYesterday() {
@@ -127,7 +160,7 @@ export class KeyBoard extends BaseScene {
             gameState.answer_scene.push('KeyBoard');
         }
         saveGameState(gameState);
-        this.scene.start('Mario');  // 適切なシーン名に変更
+        this.scene.start('Mario');
     }
 
     createHighQualityText(x, y, text, style) {
@@ -137,5 +170,4 @@ export class KeyBoard extends BaseScene {
         textObject.setScale(1 / highResScale);
         return textObject;
     }
-
 }

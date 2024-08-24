@@ -68,7 +68,12 @@ const config = {
         }
     },
     resolution: window.devicePixelRatio,  // デバイスのピクセル密度に基づいた解像度
-    antialias: true, 
+    render: {
+        pixelArt: false,
+        antialias: true,
+        antialiasGL: true,
+    }
+
 };
 
 export function createRelativeUnits(scene) {
