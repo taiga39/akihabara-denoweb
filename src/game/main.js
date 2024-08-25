@@ -9,6 +9,7 @@ import { Login } from './scenes/Login';
 import { Block } from './scenes/Block';
 import { Mario } from './scenes/Mario';
 import { KeyBoard } from './scenes/KeyBoard';
+import { Kanda } from './scenes/Kanda';
 
 import Phaser from 'phaser';
 import { Preloader } from './scenes/Preloader';
@@ -55,7 +56,8 @@ const config = {
         CrossWord,
         Block,
         Mario,
-        KeyBoard
+        KeyBoard,
+        Kanda
     ],
     dom: {
         createContainer: true
