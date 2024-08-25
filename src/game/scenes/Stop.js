@@ -47,24 +47,35 @@ export class Stop extends BaseScene {
 
         // リールとSTOPボタンの作成
         for (let i = 0; i < 3; i++) {
-            const x = width * (0.25 + i * 0.25);
+            const x = width * (0.15 + i * 0.35);
             const reelY = height * 0.4;
-            
-            // 背景の白い四角形を追加
-            const background = this.add.rectangle(x, reelY, width * 0.15, height * 0.15, 0xffffff);
+        
+            // 背景の白い四角形を追加し、サイズを少し大きくする
+            const background = this.add.rectangle(x, reelY, width * 0.25, height * 0.15, 0xffffff); // 背景の幅を広げる
             background.setOrigin(0.5);
-
+        
             // リールのテキストを更新
             const reel = this.add.text(x, reelY, this.symbols[this.currentIndexes[i]], { 
                 fontSize: `${height * 0.15}px`, 
                 fill: '#000',
                 fontStyle: 'bold'
             })
-                .setOrigin(0.5)
+                .setOrigin(0.7, 0.5)
                 .setInteractive()
                 .on('pointerdown', () => this.onReelClick(i));
             this.reels.push(reel);
-
+        
+            // 下向きの三角形（黒）を追加
+            const triangle = this.add.triangle(
+                x + background.width * 0.45, // 背景の右側に配置
+                reelY * 1.05, 
+                0, height * 0.01, // 上
+                height * 0.015, -height * 0.015, // 右下
+                -height * 0.015, -height * 0.015, // 左下
+                0x000000
+            );
+            triangle.setOrigin(0.5);
+        
             // STOPボタン（黄色い丸に黒文字）
             const stopButton = this.add.circle(x, height * 0.6, ru.toPixels(8), 0xffff00);
             const stopText = this.add.text(x, height * 0.6, 'STOP', { 
@@ -74,10 +85,15 @@ export class Stop extends BaseScene {
             }).setOrigin(0.5);
             stopButton.setInteractive()
                 .on('pointerdown', () => this.stopSpin(i));
-
+            background.setInteractive()
+                .on('pointerdown', () => this.onReelClick(i));
+            triangle.setInteractive()
+                .on('pointerdown', () => this.onReelClick(i));
+        
             // 各リールの下にセレクトボックスを作成
-            this.createSelectBox(i, x, height * 0.8);
+            this.createSelectBox(i, x, height * 0.5);
         }
+        
 
         EventBus.emit('current-scene-ready', this);
 

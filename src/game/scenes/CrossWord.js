@@ -52,7 +52,7 @@ export class CrossWord extends Scene {
                     cellY + this.cellSize / 2,
                     '',
                     { 
-                        font: `${this.cellSize / 2}px Arial`, 
+                        font: `${this.cellSize / 2.5}px Arial`, 
                         color: isBlackCell ? '#ffffff' : '#000000'
                     }
                 ).setOrigin(0.5);
@@ -70,27 +70,38 @@ export class CrossWord extends Scene {
 
     createInputElement() {
         this.inputElement = document.createElement('input');
-        this.inputElement.style.position = 'absolute';
-        this.inputElement.style.left = '-1000px';  // 画面外に配置
+        this.inputElement.style.position = 'fixed';  // absoluteからfixedに変更
+        this.inputElement.style.left = '-10000px';  // 画面外に確実に配置
         this.inputElement.style.top = '0px';
         this.inputElement.style.opacity = '0';
-        this.inputElement.style.fontSize = '16px';  // iOSで自動ズームを防ぐ
+        this.inputElement.style.zIndex = '-1';  // Z-indexを設定
+        this.inputElement.style.fontSize = '16px';  // iOSでの自動ズーム防止
         document.body.appendChild(this.inputElement);
     }
 
     setupKeyboardInput() {
-        this.input.keyboard.on('keydown', this.handleKeyInput, this);
+        // この部分では、直接文字の入力を処理しないようにします。
+        this.input.keyboard.on('keydown', this.handleKeyNavigation.bind(this));  // キーボードの移動などに使う場合
         this.inputElement.addEventListener('input', this.handleMobileInput.bind(this));
         this.inputElement.addEventListener('blur', () => {
             setTimeout(() => this.inputElement.focus(), 0);
         });
     }
 
+    handleKeyNavigation(event) {
+        if (this.activeCell) {
+            if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+                // 矢印キーでのナビゲーションなどを処理
+            } else if (event.key === 'Backspace') {
+                this.handleBackspace();
+            }
+        }
+    }
+
     handleKeyInput(event) {
         if (this.activeCell) {
             if (event.key.length === 1) {
                 this.activeCell.text.setText(event.key);
-                this.focusNextCell();
             } else if (event.key === 'Backspace') {
                 this.handleBackspace();
             }
@@ -103,18 +114,12 @@ export class CrossWord extends Scene {
             if (inputValue.length > 0) {
                 this.activeCell.text.setText(inputValue.slice(-1));
                 this.inputElement.value = '';  // 入力をクリア
-                this.focusNextCell();
             }
         }
     }
 
     handleBackspace() {
-        const currentText = this.activeCell.text.text;
-        if (currentText === '') {
-            this.focusPreviousCell();
-        } else {
-            this.activeCell.text.setText('');
-        }
+        this.activeCell.text.setText('');
     }
 
     focusCell(cell) {
@@ -128,22 +133,12 @@ export class CrossWord extends Scene {
             cell.background.setFillStyle(0x333333);
         }
         this.inputElement.focus();  // モバイルキーボードを表示
-    }
 
-    focusNextCell() {
-        if (this.activeCell) {
-            const currentIndex = this.cells.indexOf(this.activeCell);
-            const nextIndex = (currentIndex + 1) % this.cells.length;
-            this.focusCell(this.cells[nextIndex]);
-        }
-    }
-
-    focusPreviousCell() {
-        if (this.activeCell) {
-            const currentIndex = this.cells.indexOf(this.activeCell);
-            const prevIndex = (currentIndex - 1 + this.cells.length) % this.cells.length;
-            this.focusCell(this.cells[prevIndex]);
-        }
+        setTimeout(() => {
+            if (document.activeElement !== this.inputElement) {
+                this.inputElement.focus();
+            }
+        }, 100);  // フォーカスを再度トリガー
     }
 
     createSubmitButton() {
