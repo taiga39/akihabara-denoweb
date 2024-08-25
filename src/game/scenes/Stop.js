@@ -16,6 +16,14 @@ export class Stop extends BaseScene {
         this.selectBoxes = [];
     }
 
+    createHighQualityText(x, y, text, style) {
+        const highResScale = 3;
+        style.fontSize *= highResScale;
+        const textObject = this.add.text(x, y, text, style);
+        textObject.setScale(1 / highResScale);
+        return textObject;
+    }
+
     createScene() {
         console.log('Stop scene is being created');
         const width = this.scale.width;
@@ -24,7 +32,15 @@ export class Stop extends BaseScene {
 
         this.add.image(width / 2, height / 2, 'background').setDisplaySize(width, height);
 
-        // 既存のselectBoxesを削除
+        this.createHighQualityText(width / 2, height * 0.2, '７７７でそろえろ', { 
+            fontSize: ru.fontSize.large * 1.4,  // 適切なフォントサイズに調整
+            fill: '#ffffff',
+            wordWrap: { width: width * 0.8 },  // テキストの折り返し幅を指定
+            align: 'center'  // テキストを中央揃え
+        })
+        .setOrigin(0.5, 0)  // 水平方向は中央揃え、垂直方向は上揃え
+        .setPadding(10); 
+
         this.selectBoxes.forEach(selectBox => {
             if (selectBox && selectBox.parentNode) {
                 selectBox.parentNode.removeChild(selectBox);

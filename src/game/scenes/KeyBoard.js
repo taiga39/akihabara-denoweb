@@ -21,6 +21,7 @@ export class KeyBoard extends BaseScene {
     }
 
     create() {
+        new HamburgerMenu(this);
         const ru = createRelativeUnits(this);
         
         // Background

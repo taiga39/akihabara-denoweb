@@ -10,6 +10,7 @@ import { Block } from './scenes/Block';
 import { Mario } from './scenes/Mario';
 import { KeyBoard } from './scenes/KeyBoard';
 import { Kanda } from './scenes/Kanda';
+import { MenuScene } from './scenes/MenuScene';
 
 import Phaser from 'phaser';
 import { Preloader } from './scenes/Preloader';
@@ -57,7 +58,8 @@ const config = {
         Block,
         Mario,
         KeyBoard,
-        Kanda
+        Kanda,
+        MenuScene
     ],
     dom: {
         createContainer: true
