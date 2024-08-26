@@ -10,6 +10,7 @@ export class KeyBoard extends BaseScene {
         this.dpr = window.devicePixelRatio || 1;
         this.isZoomed = false;
         this.initialScale = null;
+        this.isOverlapping = true;
     }
 
     preload() {
@@ -28,29 +29,18 @@ export class KeyBoard extends BaseScene {
         this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0xeeeeee).setOrigin(0, 0);
         
         // Add Forkeyboard image
-        const forkeyboardImage = this.forkeyboardImage = this.add.image(this.scale.width / 2, this.scale.height * 0.3, 'forkeyboard');
+        this.forkeyboardImage = this.add.image(this.scale.width / 2, this.scale.height * 0.3, 'forkeyboard');
         this.optimizeImageDisplay(this.forkeyboardImage, 0.4, 0.35);
         this.forkeyboardImage.setDepth(20);
-
-        this.plugins.get('rexdragplugin').add(forkeyboardImage, {
-            enable: true,
-            axis: 'both'
-        });
-
+    
         // 初期スケールを保存
         this.initialScale = this.forkeyboardImage.scale;
-
+    
         // Add main keyboard image (draggable)
-        const keyboardImage = this.add.image(this.scale.width / 2, this.scale.height * 0.3, 'keyboard');
-        this.optimizeImageDisplay(keyboardImage, 0.8, 0.35);
-        keyboardImage.setDepth(20);
-
-        // Make the keyboard image draggable
-        this.plugins.get('rexdragplugin').add(keyboardImage, {
-            enable: true,
-            axis: 'both'
-        });
-
+        this.keyboardImage = this.add.image(this.scale.width / 2, this.scale.height * 0.3, 'keyboard');
+        this.optimizeImageDisplay(this.keyboardImage, 0.8, 0.35);
+        this.keyboardImage.setDepth(20);
+    
         // Input form
         this.inputText = this.add.rexInputText(ru.toPixels(50), ru.toPixels(90), ru.toPixels(80), ru.toPixels(15), {
             type: 'text',
@@ -64,7 +54,7 @@ export class KeyBoard extends BaseScene {
             borderThickness: 2
         });
         this.inputText.setDepth(3);
-
+    
         // Answer button
         const answerButton = this.createHighQualityText(ru.toPixels(50), ru.toPixels(110), '回答する', {
             fontSize: ru.fontSize.medium,
@@ -76,14 +66,14 @@ export class KeyBoard extends BaseScene {
         .setOrigin(0.5)
         .setInteractive()
         .setDepth(3);
-
+    
         this.plugins.get('rexdragplugin').add(answerButton, {
             enable: true,
             axis: 'both'
         });
-
+    
         answerButton.on('pointerdown', () => this.handleAnswer());
-
+    
         // Zoom button
         const zoomButton = this.createHighQualityText(ru.toPixels(52), ru.toPixels(106), 'Zoom', {
             fontSize: ru.fontSize.small,
@@ -95,8 +85,43 @@ export class KeyBoard extends BaseScene {
         .setOrigin(1, 0)
         .setInteractive()
         .setDepth(2);
-
+    
         zoomButton.on('pointerdown', () => this.toggleZoom());
+    
+        // Setup draggable images
+        this.setupDraggableImage(this.forkeyboardImage);
+        this.setupDraggableImage(this.keyboardImage);
+    }
+
+    setupDraggableImage(image) {
+        const dragPlugin = this.plugins.get('rexdragplugin');
+        dragPlugin.add(image, {
+            enable: true,
+            axis: 'both'
+        });
+
+        // dragendイベントを使用
+        image.on('dragend', () => {
+            this.checkOverlap();
+        });
+    }
+
+    checkOverlap() {
+        const bounds1 = this.forkeyboardImage.getBounds();
+        const bounds2 = this.keyboardImage.getBounds();
+
+        const isOverlapping = Phaser.Geom.Intersects.RectangleToRectangle(bounds1, bounds2);
+
+        if (!isOverlapping && this.isOverlapping) {
+            // 重なりがなくなった瞬間
+            this.onImagesNoLongerOverlap();
+        }
+
+        this.isOverlapping = isOverlapping;
+    }
+
+    onImagesNoLongerOverlap() {
+        alert('画像の重なりがなくなりました！');
     }
 
     optimizeImageDisplay(image, maxWidthRatio, maxHeightRatio) {
