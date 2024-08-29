@@ -7,10 +7,7 @@ export class Mario extends Scene {
 
     init() {
         console.log('Mario scene initialized');
-        this.initialX = 50;
-        this.cameraLerpFactor = 0.05;
-        this.hasMovedRight = false;
-        this.leftMoveProgress = 0;
+        this.cameraLerpFactor = 0.1;
         this.jumpPressed = false;
         this.jumpCooldown = 0;
         this.autoMove = 0; // -1: 左、0: 停止、1: 右
@@ -19,7 +16,7 @@ export class Mario extends Scene {
     preload() {
         this.load.image('world_tileset', 'assets/world_tileset.png');
         this.load.image('platforms', 'assets/platforms.png');
-        this.load.tilemapTiledJSON('map', 'assets/map1.json');
+        this.load.tilemapTiledJSON('map', 'assets/map2.json');
     }
 
     create() {
@@ -37,15 +34,14 @@ export class Mario extends Scene {
         console.log('Tilesets:', worldTileset, platformsTileset);
         
         // レイヤーの作成
-        const mainLayer = map.createLayer('platforms', [worldTileset, platformsTileset], 0, 350);
+        const mainLayer = map.createLayer('platforms', [worldTileset, platformsTileset], -450, 350);
         console.log('Main layer:', mainLayer);
         
         // 衝突の設定（すべてのタイルに対して衝突を設定）
         mainLayer.setCollisionByExclusion([-1]);
         console.log('Collision set');
     
-        // マリオ（四角形）- 左端に配置
-        this.mario = this.add.rectangle(this.initialX, this.scale.height - 200, 50, 50, 0xFF0000);
+        this.mario = this.add.rectangle(100, this.scale.height - 200, 20, 20, 0xFF0000);
         this.physics.add.existing(this.mario);
         this.mario.body.setCollideWorldBounds(false);
         this.mario.body.setGravityY(300);
@@ -54,19 +50,17 @@ export class Mario extends Scene {
         this.physics.add.collider(this.mario, mainLayer);
     
         // カメラの設定
-        this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-        this.cameras.main.scrollX = 0;
+        this.cameras.main.setBounds(-400, 0, map.widthInPixels + 800, map.heightInPixels);
+        this.cameras.main.scrollX = 0; // カメラの初期位置を左端に設定
+    
+        // カメラの追従フラグを追加
+        this.cameraFollowing = false;
     
         // 移動ボタン
         this.createMoveButtons();
 
         // マリオの物理ボディを調整
-        this.mario.body.setSize(40, 40);
-        this.mario.body.setOffset(5, 5);
-
-        // マリオの物理ボディを表示（デバッグ用）
-        this.mario.body.debugShowBody = true;
-        this.mario.body.debugShowVelocity = true;
+        this.mario.body.setSize(20, 20);
     }
 
     createGradientBackground() {
@@ -91,7 +85,7 @@ export class Mario extends Scene {
 
     createMoveButtons() {
         const buttonStyle = {
-            fontSize: '32px',
+            fontSize: '20px',
             backgroundColor: '#4a4a4a',
             padding: { x: 10, y: 10 },
             fixedWidth: this.scale.width / 4 - 10,
@@ -103,7 +97,7 @@ export class Mario extends Scene {
         const leftButton = this.add.text(5, buttonY, '←', buttonStyle)
             .setScrollFactor(0)
             .setInteractive()
-            .on('pointerdown', () => this.autoMove = -1);
+            .on('pointerdown', () => this.autoMove = -0.5);
     
         const stopButton = this.add.text(this.scale.width / 4 + 5, buttonY, '■', buttonStyle)
             .setScrollFactor(0)
@@ -113,7 +107,7 @@ export class Mario extends Scene {
         const rightButton = this.add.text(this.scale.width / 2 + 5, buttonY, '→', buttonStyle)
             .setScrollFactor(0)
             .setInteractive()
-            .on('pointerdown', () => this.autoMove = 1);
+            .on('pointerdown', () => this.autoMove = 0.5);
     
         const jumpButton = this.add.text(this.scale.width * 3 / 4 + 5, buttonY, 'Jump', buttonStyle)
             .setScrollFactor(0)
@@ -140,42 +134,33 @@ export class Mario extends Scene {
 
     update(time, delta) {
         this.moveMario();
-
+    
         if (this.jumpPressed) {
             this.jumpMario();
         } else {
             this.jumpCooldown = 0;
         }
-
+    
         if (this.jumpCooldown > 0) {
             this.jumpCooldown -= delta;
         }
-
-        const distanceFromStart = this.mario.x - this.initialX;
-        const halfScreenWidth = this.scale.width / 2;
-
-        if (distanceFromStart >= 0) {
-            if (!this.hasMovedRight) {
-                const targetX = Math.max(0, this.mario.x - halfScreenWidth);
-                this.cameras.main.scrollX += (targetX - this.cameras.main.scrollX) * this.cameraLerpFactor;
-                
-                if (this.mario.x >= halfScreenWidth) {
-                    this.hasMovedRight = true;
-                    this.cameras.main.startFollow(this.mario);
-                }
-            }
-            this.leftMoveProgress = 0;
-        } else {
-            this.hasMovedRight = false;
-            this.leftMoveProgress = Math.min(1, Math.abs(distanceFromStart) / halfScreenWidth);
-            const easeValue = this.easeOutCubic(this.leftMoveProgress);
-            const targetX = -distanceFromStart * easeValue;
-            
-            this.cameras.main.scrollX += (targetX - this.cameras.main.scrollX) * this.cameraLerpFactor;
-
-            if (this.leftMoveProgress === 1) {
-                this.cameras.main.startFollow(this.mario);
-            }
+    
+        // カメラの追従ロジック
+        const screenCenterX = this.cameras.main.scrollX + this.scale.width / 2;
+        
+        if (!this.cameraFollowing && this.mario.x >= screenCenterX) {
+            // マリオが画面中央に到達したらカメラの追従を開始
+            this.cameraFollowing = true;
+            this.cameras.main.startFollow(this.mario, true, 1, 1);
+        }
+    
+        if (this.cameraFollowing) {
+            // カメラの位置が範囲外にならないようにクランプ
+            this.cameras.main.scrollX = Phaser.Math.Clamp(
+                this.cameras.main.scrollX,
+                this.cameras.main.getBounds().x,
+                this.cameras.main.getBounds().right - this.cameras.main.width
+            );
         }
     }
 }
