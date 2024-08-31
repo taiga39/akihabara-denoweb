@@ -61,6 +61,9 @@ const config = {
         Kanda,
         MenuScene
     ],
+    input: {
+        activePointers: 3 // ここで最大3つのタッチを同時に処理可能に設定
+    },
     dom: {
         createContainer: true
     },

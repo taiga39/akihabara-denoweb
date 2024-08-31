@@ -43,7 +43,7 @@ export class Login extends BaseScene {
         this.passwordToggleButton = this.add.image(centerX + ru.toPixels(29), ru.toPixels(82) - ru.toPixels(2), 'eye-icon')
             .setOrigin(0.5)
             .setInteractive()
-            .setScale(ru.toPixels(0.03)); // Adjust scale as needed
+            .setScale(ru.toPixels(0.03));
 
         this.updatePasswordToggleIcon();
 
@@ -161,9 +161,9 @@ export class Login extends BaseScene {
 
     updatePasswordToggleIcon() {
         if (this.passwordInput.isVisible) {
-            this.passwordToggleButton.setAlpha(1); // Fully opaque
+            this.passwordToggleButton.setAlpha(1); // 完全に不透明
         } else {
-            this.passwordToggleButton.setAlpha(0.5); // 50% transparent
+            this.passwordToggleButton.setAlpha(0.5); // 50%の透明度
         }
     }
 
