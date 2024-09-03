@@ -1,6 +1,7 @@
-import { Scene } from 'phaser';
+import { BaseScene } from '../BaseScene';
 
-export class Mario extends Scene {
+
+export class Mario extends BaseScene {
     constructor() {
         super('Mario');
     }
@@ -19,7 +20,7 @@ export class Mario extends Scene {
         this.load.tilemapTiledJSON('map', 'assets/map2.json');
     }
 
-    create() {
+    createScene() {
         console.log('Create method started');
     
         this.createGradientBackground();

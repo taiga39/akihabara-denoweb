@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { saveGameState, loadGameState } from './hooks/gameState';
+import HamburgerMenu from './component/HamburgerMenu';
 
 export class BaseScene extends Phaser.Scene {
     create() {
@@ -12,6 +13,7 @@ export class BaseScene extends Phaser.Scene {
         }
 
         this.createScene();
+        new HamburgerMenu(this);
     }
 
     recordAnswer() {

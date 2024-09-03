@@ -1,10 +1,9 @@
 'use strict';
 
-import { Scene } from 'phaser';
+import { BaseScene } from '../BaseScene';
 import SpeechBubble from '../component/SpeechBubble';
-import HamburgerMenu from '../component/HamburgerMenu';
 
-export class Pinch extends Scene {
+export class Pinch extends BaseScene {
     constructor() {
         super('Pinch');
         this.cells = [];
@@ -31,7 +30,7 @@ export class Pinch extends Scene {
         }
     }
 
-    create() {
+    createScene() {
         this.cameras.main.setBackgroundColor('#ffffff');
     
         // 白いオーバーレイを作成
@@ -79,7 +78,6 @@ export class Pinch extends Scene {
     
         this.createDebugToggleButton();
         this.createConfirmButton();
-        new HamburgerMenu(this);
     
         // 指示枠をカメラに追従させる
         this.cameras.main.ignore([instructionBox, instructionText]);

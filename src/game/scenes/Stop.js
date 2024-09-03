@@ -132,8 +132,6 @@ export class Stop extends BaseScene {
     
         // SpeechBubble を最前面に表示
         this.children.bringToTop(speechBubble);
-
-        new HamburgerMenu(this);
     }
 
     createSelectBox(index, x, y) {

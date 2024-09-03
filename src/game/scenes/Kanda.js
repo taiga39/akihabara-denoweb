@@ -2,7 +2,6 @@ import { createRelativeUnits } from '../main';
 import { loadGameState, saveGameState } from '../hooks/gameState';
 import { BaseScene } from '../BaseScene';
 import SpeechBubble from '../component/SpeechBubble';
-import HamburgerMenu from '../component/HamburgerMenu';
 
 export class Kanda extends BaseScene {
     constructor() {
@@ -19,7 +18,7 @@ export class Kanda extends BaseScene {
         this.load.image('kanda1', 'assets/kanda1.png');
     }
 
-    create() {
+    createScene() {
         const ru = createRelativeUnits(this);
         
         // Background

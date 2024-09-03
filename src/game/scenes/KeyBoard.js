@@ -2,7 +2,6 @@ import { createRelativeUnits } from '../main';
 import { loadGameState, saveGameState } from '../hooks/gameState';
 import { BaseScene } from '../BaseScene';
 import SpeechBubble from '../component/SpeechBubble';
-import HamburgerMenu from '../component/HamburgerMenu';
 
 export class KeyBoard extends BaseScene {
     constructor() {
@@ -21,8 +20,7 @@ export class KeyBoard extends BaseScene {
         this.load.image('forkeyboard', 'assets/forkeyboard.jpg');
     }
 
-    create() {
-        new HamburgerMenu(this);
+    createScene() {
         const ru = createRelativeUnits(this);
         
         // Background

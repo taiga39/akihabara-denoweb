@@ -1,8 +1,7 @@
 'use strict';
 
-import { Scene } from 'phaser';
-
-export class CrossWord extends Scene {
+import { BaseScene } from '../BaseScene';
+export class CrossWord extends BaseScene {
     constructor() {
         super('CrossWord');
     }
@@ -11,7 +10,7 @@ export class CrossWord extends Scene {
         this.load.plugin('rexinputtextplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexinputtextplugin.min.js', true);
     }
 
-    create() {
+    createScene() {
         this.gridSize = 5;
         this.cellSize = this.scale.width / 6;
 

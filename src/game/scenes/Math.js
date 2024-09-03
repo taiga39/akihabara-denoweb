@@ -1,13 +1,11 @@
-'use strict';
+import { BaseScene } from '../BaseScene';
 
-import { Scene } from 'phaser';
-
-export class Math extends Scene {
+export class Math extends BaseScene {
     constructor() {
         super('Math');
     }
 
-    create() {
+    createScene() {
         // 背景色を設定
         this.cameras.main.setBackgroundColor('#eeeeee');
 

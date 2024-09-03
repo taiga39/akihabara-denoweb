@@ -52,6 +52,9 @@ export class MenuScene extends Phaser.Scene {
         closeButton.on('pointerdown', () => {
             this.scene.start('MainScene');  // メインシーンに戻る
         });
+
+        // デバッグボタンを追加
+        this.addDebugButtons();
     }
 
     addMenuItem(container, text, index, itemWidth, itemHeight, padding) {
@@ -86,5 +89,34 @@ export class MenuScene extends Phaser.Scene {
         });
 
         container.add(button);
+    }
+
+    addDebugButtons() {
+        const debugScenes = [
+            'Login', 'Stop', 'Pinch', 'CrossWord', 'Block',
+            'Mario', 'KeyBoard', 'Kanda', 'Math'
+        ];
+
+        const buttonWidth = this.relativeUnits.toPixels(20);
+        const buttonHeight = this.relativeUnits.toPixels(5);
+        const padding = this.relativeUnits.toPixels(1);
+        const startX = this.scale.width * 0.05;
+        const startY = this.scale.height * 0.7;
+
+        debugScenes.forEach((sceneName, index) => {
+            const x = startX + (index % 3) * (buttonWidth + padding);
+            const y = startY + Math.floor(index / 3) * (buttonHeight + padding);
+
+            const button = this.add.rectangle(x, y, buttonWidth, buttonHeight, 0x444444);
+            const text = this.add.text(x, y, sceneName, {
+                fontSize: `${this.relativeUnits.fontSize.small}px`,
+                color: '#ffffff'
+            }).setOrigin(0.5);
+
+            button.setInteractive();
+            button.on('pointerdown', () => {
+                this.scene.start(sceneName);
+            });
+        });
     }
 }

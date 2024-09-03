@@ -1,6 +1,6 @@
-import { Scene } from 'phaser';
+import { BaseScene } from '../BaseScene';
 
-export class Block extends Scene {
+export class Block extends BaseScene {
     constructor() {
         super('Block');
     }
@@ -12,7 +12,7 @@ export class Block extends Scene {
         console.log('this.physics:', this.physics);
     }
 
-    create() {
+    createScene() {
         console.log('Create method started');
         
         this.cameras.main.setBackgroundColor('#000000');

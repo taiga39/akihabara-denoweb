@@ -60,8 +60,8 @@ const config = {
         Mario,
         KeyBoard,
         Kanda,
+        Math,
         MenuScene,
-        Math
     ],
     input: {
         activePointers: 3 // ここで最大3つのタッチを同時に処理可能に設定

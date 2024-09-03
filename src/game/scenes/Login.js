@@ -1,6 +1,5 @@
 import { createRelativeUnits } from '../main';
 import SpeechBubble from '../component/SpeechBubble';
-import HamburgerMenu from '../component/HamburgerMenu';
 import { BaseScene } from '../BaseScene';
 import { loadGameState, saveGameState } from '../hooks/gameState';
 
@@ -94,8 +93,6 @@ export class Login extends BaseScene {
         );
     
         this.children.bringToTop(speechBubble);
-
-        new HamburgerMenu(this);
     }
 
     createInputField(x, y, defaultText, inputName, isPassword = false) {
