@@ -187,14 +187,4 @@ export class Login extends BaseScene {
         textObject.setScale(1 / highResScale);
         return textObject;
     }
-
-    startNextScene() {
-        const gameState = loadGameState();
-        gameState.current_scene = 'Stop';
-        if (!gameState.answer_scene.includes('Login')) {
-            gameState.answer_scene.push('Login');
-        }
-        saveGameState(gameState);
-        this.scene.start('Stop');
-    }
 }

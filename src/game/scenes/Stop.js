@@ -236,14 +236,4 @@ export class Stop extends BaseScene {
             }
         }
     }
-
-    startNextScene() {
-        const gameState = loadGameState();
-        gameState.current_scene = 'KeyBoard';
-        if (!gameState.answer_scene.includes('Stop')) {
-            gameState.answer_scene.push('Stop');
-        }
-        saveGameState(gameState);
-        this.scene.start('KeyBoard');
-    }
 }

@@ -212,7 +212,7 @@ export class Pinch extends BaseScene {
                           checkedNumbers.length === this.correctChecks.length;
 
         if (isCorrect) {
-            alert('OK');
+            this.startNextScene();
         } else {
             this.resetCheckboxes();
         }

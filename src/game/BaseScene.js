@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { saveGameState, loadGameState } from './hooks/gameState';
+import { loadGameState, saveGameState, getNextScene } from './hooks/gameState';
 import HamburgerMenu from './component/HamburgerMenu';
 
 export class BaseScene extends Phaser.Scene {
@@ -14,6 +14,19 @@ export class BaseScene extends Phaser.Scene {
 
         this.createScene();
         new HamburgerMenu(this);
+    }
+
+    startNextScene() {
+        const gameState = loadGameState();
+        const nextScene = getNextScene(this.scene.key);
+        
+        gameState.current_scene = nextScene;
+        if (!gameState.answer_scene.includes(this.scene.key)) {
+            gameState.answer_scene.push(this.scene.key);
+        }
+        
+        saveGameState(gameState);
+        this.scene.start(nextScene);
     }
 
     recordAnswer() {

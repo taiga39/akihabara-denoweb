@@ -93,20 +93,10 @@ export class Kanda extends BaseScene {
 
         if (userInput === "神田明神") {
             console.log('正解です！');
-            // this.startNextScene();
+            this.startNextScene();
         } else {
             console.log('不正解です。正解は ' + correctAnswer + ' でした。');
         }
-    }
-
-    startNextScene() {
-        const gameState = loadGameState();
-        gameState.current_scene = 'Mario';
-        if (!gameState.answer_scene.includes('Kanda')) {
-            gameState.answer_scene.push('Kanda');
-        }
-        saveGameState(gameState);
-        this.scene.start('Mario');
     }
 
     createHighQualityText(x, y, text, style) {

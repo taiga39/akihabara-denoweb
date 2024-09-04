@@ -177,16 +177,6 @@ export class KeyBoard extends BaseScene {
         return daysOfWeek[yesterday.getDay()];
     }
 
-    startNextScene() {
-        const gameState = loadGameState();
-        gameState.current_scene = 'Mario';
-        if (!gameState.answer_scene.includes('KeyBoard')) {
-            gameState.answer_scene.push('KeyBoard');
-        }
-        saveGameState(gameState);
-        this.scene.start('Mario');
-    }
-
     createHighQualityText(x, y, text, style) {
         const highResScale = 3;
         style.fontSize *= highResScale;
