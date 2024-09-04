@@ -63,11 +63,6 @@ export class Kanda extends BaseScene {
         .setInteractive()
         .setDepth(3);
 
-        this.plugins.get('rexdragplugin').add(answerButton, {
-            enable: true,
-            axis: 'both'
-        });
-
         answerButton.on('pointerdown', () => this.handleAnswer());
     }
 
