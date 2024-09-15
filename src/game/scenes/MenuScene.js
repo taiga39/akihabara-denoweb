@@ -93,7 +93,7 @@ export class MenuScene extends Phaser.Scene {
 
     addDebugButtons() {
         const debugScenes = [
-            'Login', 'Stop', 'Pinch', 'CrossWord', 'Block',
+            'Login', 'Faq','Stop', 'Pinch', 'CrossWord', 'Block',
             'Mario', 'KeyBoard', 'Kanda', 'Math'
         ];
 

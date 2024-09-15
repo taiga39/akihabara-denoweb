@@ -6,6 +6,7 @@ import { Stop } from './scenes/Stop';
 import { Pinch } from './scenes/Pinch';
 import { CrossWord } from './scenes/CrossWord';
 import { Login } from './scenes/Login';
+import { Faq } from './scenes/Faq';
 import { Block } from './scenes/Block';
 import { Mario } from './scenes/Mario';
 import { KeyBoard } from './scenes/KeyBoard';
@@ -53,6 +54,7 @@ const config = {
         Game,
         GameOver,
         Login,
+        Faq,
         CrossWord,
         Pinch,
         KeyBoard,
