@@ -42,15 +42,15 @@ export class MenuScene extends Phaser.Scene {
         // メニューの位置を調整
         menuItems.setPosition(width / 2, height / 4);
 
-        // 戻るボタン
-        const closeButton = this.add.text(width / 2, height * 0.9, '閉じる', {
+        // 退会ボタン（位置を下に調整）
+        const unsubscribeButton = this.add.text(width / 2, height * 0.95, '退会する', {
             fontSize: `${ru.fontSize.large}px`,
-            color: '#ffffff'
-        }).setOrigin(0.5);
+            color: '#ff0000'
+        }).setOrigin(0.5).setPadding(4);
 
-        closeButton.setInteractive();
-        closeButton.on('pointerdown', () => {
-            this.scene.start('MainScene');  // メインシーンに戻る
+        unsubscribeButton.setInteractive();
+        unsubscribeButton.on('pointerdown', () => {
+            this.showUnsubscribeModal();
         });
 
         // デバッグボタンを追加
@@ -117,6 +117,39 @@ export class MenuScene extends Phaser.Scene {
             button.on('pointerdown', () => {
                 this.scene.start(sceneName);
             });
+        });
+    }
+
+    showUnsubscribeModal() {
+        const modalWidth = this.scale.width * 0.8;
+        const modalHeight = this.scale.height * 0.3;
+        const modalX = this.scale.width / 2 - modalWidth / 2;
+        const modalY = this.scale.height / 2 - modalHeight / 2;
+    
+        // モーダルの背景（白に変更）
+        const modalBg = this.add.rectangle(modalX, modalY, modalWidth, modalHeight, 0xFFFFFF, 1);
+        modalBg.setOrigin(0, 0);
+    
+        // モーダルのメッセージ（テキスト色を黒に変更）
+        const message = this.add.text(this.scale.width / 2, modalY + modalHeight / 2, 
+            '退会するためには\n有料会員の契約を\n解約してください', {
+            fontSize: `${this.relativeUnits.fontSize.medium}px`,
+            color: '#000000',
+            align: 'center',
+            lineSpacing: 10
+        }).setOrigin(0.5).setPadding(4);
+    
+        // 閉じるボタン（テキスト色を黒に変更）
+        const closeButton = this.add.text(modalX + modalWidth - 10, modalY + 10, 'X', {
+            fontSize: `${this.relativeUnits.fontSize.large}px`,
+            color: '#000000'
+        }).setOrigin(1, 0).setPadding(4);
+    
+        closeButton.setInteractive();
+        closeButton.on('pointerdown', () => {
+            modalBg.destroy();
+            message.destroy();
+            closeButton.destroy();
         });
     }
 }
