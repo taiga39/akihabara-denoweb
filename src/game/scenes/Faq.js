@@ -22,7 +22,7 @@ export class Faq extends BaseScene {
         const ru = createRelativeUnits(this);
         
         this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0xFFFFFF).setOrigin(0, 0);
-
+    
         const faqItems = [
             { 
                 title: '退会するためには？', 
@@ -45,9 +45,14 @@ export class Faq extends BaseScene {
                 text: 'アカウント設定の「プラン変更」セクションから、現在のプランを確認し、他のプランに変更することができます。上位プランへの変更は即時反映されますが、下位プランへの変更は現在の請求期間が終了するまで適用されません。年間プランから月間プランへの変更、またはその逆も可能です。プラン変更時の料金は、利用日数に応じて日割り計算されます。特定のプランでのみ利用可能な機能がありますので、プラン変更前に機能の比較表をご確認ください。'
             }
         ];
-
+    
         const content = this.createFaqContent(faqItems);
-
+    
+        // 初期スクロール量を設定（ピクセル単位）
+        // 下と合わせて解約用のやつ
+        // const initialOffset = ru.toPixels(50);
+        // content.setY(-initialOffset);
+    
         const scrollablePanel = this.rexUI.add.scrollablePanel({
             x: this.scale.width / 2,
             y: this.scale.height / 2,
@@ -76,6 +81,8 @@ export class Faq extends BaseScene {
             }),
             space: { left: 10, right: 10, top: 10, bottom: 10, panel: 10, header: 10 }
         }).layout();
+        
+        // scrollablePanel.setChildOY(-initialOffset);
     }
 
     createFaqContent(faqItems) {
