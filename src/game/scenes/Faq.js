@@ -64,10 +64,6 @@ export class Faq extends BaseScene {
                 child: content,
                 mask: { padding: 1 },
             },
-            slider: {
-                track: this.rexUI.add.roundRectangle({ width: 10, radius: 10, color: 0xEEEEEE }),
-                thumb: this.rexUI.add.roundRectangle({ width: 10, radius: 13, color: 0xCCCCCC }),
-            },
             mouseWheelScroller: {
                 focus: false,
                 speed: 0.1
@@ -87,8 +83,7 @@ export class Faq extends BaseScene {
         const content = this.add.container();
         let yOffset = 0;
 
-        const panelWidth = this.scale.width - ru.toPixels(15); // パネルの幅を調整
-
+        const panelWidth = this.scale.width - ru.toPixels(8); // パネルの幅を調整0
         faqItems.forEach((item, index) => {
             const title = this.add.text(0, yOffset, item.title, {
                 fontSize: ru.fontSize.medium,
