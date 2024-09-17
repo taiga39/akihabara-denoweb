@@ -19,8 +19,8 @@ export class MenuScene extends Phaser.Scene {
         const itemHeight = ru.toPixels(10);
         const padding = ru.toPixels(2);
 
-        // 背景を黒に設定
-        this.add.rectangle(0, 0, width, height, 0x000000).setOrigin(0);
+        // 背景を白に設定
+        this.add.rectangle(0, 0, width, height, 0xFFFFFF).setOrigin(0);
 
         // メニュー項目を表示するコンテナ
         const menuItems = this.add.container(0, 0);
@@ -58,12 +58,12 @@ export class MenuScene extends Phaser.Scene {
     }
 
     addMenuItem(container, text, index, itemWidth, itemHeight, padding) {
-        const itemBackground = this.add.rectangle(0, 0, itemWidth, itemHeight, 0x333333);
+        const itemBackground = this.add.rectangle(0, 0, itemWidth, itemHeight, 0xEEEEEE);
         itemBackground.setOrigin(0.5, 0.5);
 
         const textObject = this.add.text(0, 0, text, {
             fontSize: `${this.relativeUnits.fontSize.medium}px`,
-            color: '#ffffff',
+            color: '#000000',
             wordWrap: { width: itemWidth - padding * 2, useAdvancedWrap: true }
         }).setOrigin(0.5, 0.4).setPadding(4);
 
@@ -107,10 +107,10 @@ export class MenuScene extends Phaser.Scene {
             const x = startX + (index % 3) * (buttonWidth + padding);
             const y = startY + Math.floor(index / 3) * (buttonHeight + padding);
 
-            const button = this.add.rectangle(x, y, buttonWidth, buttonHeight, 0x444444);
+            const button = this.add.rectangle(x, y, buttonWidth, buttonHeight, 0xDDDDDD);
             const text = this.add.text(x, y, sceneName, {
                 fontSize: `${this.relativeUnits.fontSize.small}px`,
-                color: '#ffffff'
+                color: '#000000'
             }).setOrigin(0.5);
 
             button.setInteractive();
@@ -126,11 +126,11 @@ export class MenuScene extends Phaser.Scene {
         const modalX = this.scale.width / 2 - modalWidth / 2;
         const modalY = this.scale.height / 2 - modalHeight / 2;
     
-        // モーダルの背景（白に変更）
+        // モーダルの背景（白のまま）
         const modalBg = this.add.rectangle(modalX, modalY, modalWidth, modalHeight, 0xFFFFFF, 1);
         modalBg.setOrigin(0, 0);
     
-        // モーダルのメッセージ（テキスト色を黒に変更）
+        // モーダルのメッセージ（テキスト色は黒のまま）
         const message = this.add.text(this.scale.width / 2, modalY + modalHeight / 2, 
             '退会するためには\n有料会員の契約を\n解約してください', {
             fontSize: `${this.relativeUnits.fontSize.medium}px`,
@@ -139,7 +139,7 @@ export class MenuScene extends Phaser.Scene {
             lineSpacing: 10
         }).setOrigin(0.5).setPadding(4);
     
-        // 閉じるボタン（テキスト色を黒に変更）
+        // 閉じるボタン（テキスト色は黒のまま）
         const closeButton = this.add.text(modalX + modalWidth - 10, modalY + 10, 'X', {
             fontSize: `${this.relativeUnits.fontSize.large}px`,
             color: '#000000'
