@@ -2,12 +2,24 @@ import Phaser from 'phaser';
 import { loadGameState, saveGameState, getNextScene } from './hooks/gameState';
 import HamburgerMenu from './component/HamburgerMenu';
 
+const SCENE_ORDER = [
+    'Login',
+    'CrossWord',
+    'Pinch',
+    'KeyBoard',
+    'Stop',
+    'Kanda',
+    'Math',
+    'Block',
+    'Mario'
+];
+
 export class BaseScene extends Phaser.Scene {
     create() {
         const gameState = loadGameState();
         
-        // answer_sceneに含まれていない場合のみcurrent_sceneを更新
-        if (!gameState.answer_scene.includes(this.scene.key)) {
+        // SCENE_ORDERに含まれる場合のみcurrent_sceneを更新
+        if (SCENE_ORDER.includes(this.scene.key) && !gameState.answer_scene.includes(this.scene.key)) {
             gameState.current_scene = this.scene.key;
             saveGameState(gameState);
         }
@@ -21,7 +33,7 @@ export class BaseScene extends Phaser.Scene {
         const nextScene = getNextScene(this.scene.key);
         
         gameState.current_scene = nextScene;
-        if (!gameState.answer_scene.includes(this.scene.key)) {
+        if (SCENE_ORDER.includes(this.scene.key) && !gameState.answer_scene.includes(this.scene.key)) {
             gameState.answer_scene.push(this.scene.key);
         }
         
@@ -31,7 +43,7 @@ export class BaseScene extends Phaser.Scene {
 
     recordAnswer() {
         const gameState = loadGameState();
-        if (!gameState.answer_scene.includes(this.scene.key)) {
+        if (SCENE_ORDER.includes(this.scene.key) && !gameState.answer_scene.includes(this.scene.key)) {
             gameState.answer_scene.push(this.scene.key);
             saveGameState(gameState);
         }

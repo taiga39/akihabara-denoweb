@@ -90,6 +90,8 @@ export class MenuScene extends Phaser.Scene {
                 localStorage.removeItem('gameState');
             } else if (text === 'アクセス') {
                 this.scene.start('Access');  // Access シーンに遷移
+            } else if (text === '設定') {
+                this.scene.start('Setting');  // Setting シーンに遷移
             }
         });
     
