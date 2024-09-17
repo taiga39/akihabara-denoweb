@@ -13,6 +13,7 @@ import { KeyBoard } from './scenes/KeyBoard';
 import { Kanda } from './scenes/Kanda';
 import { Math } from './scenes/Math';
 import { MenuScene } from './scenes/MenuScene';
+import { Access } from './scenes/Access';
 
 import Phaser from 'phaser';
 import { Preloader } from './scenes/Preloader';
@@ -64,6 +65,7 @@ const config = {
         Block,
         Mario,
         MenuScene,
+        Access
     ],
     input: {
         activePointers: 3 // ここで最大3つのタッチを同時に処理可能に設定

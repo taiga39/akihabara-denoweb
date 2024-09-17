@@ -36,8 +36,11 @@ export class MenuScene extends Phaser.Scene {
         // 持ち物
         this.addMenuItem(menuItems, '持ち物', completedScenes.length + 1, itemWidth, itemHeight, padding);
 
+        // アクセス
+        this.addMenuItem(menuItems, 'アクセス', completedScenes.length + 2, itemWidth, itemHeight, padding);
+
         // 設定
-        this.addMenuItem(menuItems, '設定', completedScenes.length + 2, itemWidth, itemHeight, padding);
+        this.addMenuItem(menuItems, '設定', completedScenes.length + 3, itemWidth, itemHeight, padding);
 
         // メニューの位置を調整
         menuItems.setPosition(width / 2, height / 4);
@@ -60,21 +63,21 @@ export class MenuScene extends Phaser.Scene {
     addMenuItem(container, text, index, itemWidth, itemHeight, padding) {
         const itemBackground = this.add.rectangle(0, 0, itemWidth, itemHeight, 0xEEEEEE);
         itemBackground.setOrigin(0.5, 0.5);
-
+    
         const textObject = this.add.text(0, 0, text, {
             fontSize: `${this.relativeUnits.fontSize.medium}px`,
             color: '#000000',
             wordWrap: { width: itemWidth - padding * 2, useAdvancedWrap: true }
         }).setOrigin(0.5, 0.4).setPadding(4);
-
+    
         const button = this.add.container(0, (itemHeight + padding) * index);
         button.setSize(itemWidth, itemHeight);
         button.add([itemBackground, textObject]);
-
+    
         // ボタンをインタラクティブにする
         button.setInteractive();
         button.on('pointerdown', () => {
-            if (text !== '持ち物' && text !== '設定' && !text.startsWith('問題')) {
+            if (text !== '持ち物' && text !== '設定' && text !== 'アクセス' && !text.startsWith('問題')) {
                 const gameState = loadGameState();
                 this.scene.start(gameState.current_scene);
             } else if (text.startsWith('問題')) {
@@ -85,9 +88,11 @@ export class MenuScene extends Phaser.Scene {
                 }
             } else if (text === '持ち物') {
                 localStorage.removeItem('gameState');
+            } else if (text === 'アクセス') {
+                this.scene.start('Access');  // Access シーンに遷移
             }
         });
-
+    
         container.add(button);
     }
 
