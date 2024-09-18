@@ -4,6 +4,7 @@ import HamburgerMenu from './component/HamburgerMenu';
 
 const SCENE_ORDER = [
     'Login',
+    'Unsubscribe',
     'CrossWord',
     'Pinch',
     'KeyBoard',
@@ -25,7 +26,9 @@ export class BaseScene extends Phaser.Scene {
         }
 
         this.createScene();
-        new HamburgerMenu(this);
+        // if (this.scene.key !== 'Login') {
+            new HamburgerMenu(this);
+        // }
     }
 
     startNextScene() {

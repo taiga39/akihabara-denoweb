@@ -15,6 +15,7 @@ import { Math } from './scenes/Math';
 import { MenuScene } from './scenes/MenuScene';
 import { Access } from './scenes/Access';
 import { Setting } from './scenes/Setting';
+import { Unsubscribe } from './scenes/Unsubscribe';
 
 import Phaser from 'phaser';
 import { Preloader } from './scenes/Preloader';
@@ -67,7 +68,8 @@ const config = {
         Mario,
         MenuScene,
         Access,
-        Setting
+        Setting,
+        Unsubscribe
     ],
     input: {
         activePointers: 3 // ここで最大3つのタッチを同時に処理可能に設定

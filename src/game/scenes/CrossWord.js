@@ -102,7 +102,7 @@ export class CrossWord extends BaseScene {
         const correctAnswers = ['らじおかいかん', 'ラジオ会館', 'らじお会館'];
 
         if (correctAnswers.includes(userInput)) {
-            this.showFeedback('正解です！', 0x00ff00);
+            this.startNextScene();
         } else {
             this.showFeedback('不正解です。もう一度試してください。', 0xff0000);
         }

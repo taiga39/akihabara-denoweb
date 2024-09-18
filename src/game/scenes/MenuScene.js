@@ -39,8 +39,10 @@ export class MenuScene extends Phaser.Scene {
         // アクセス
         this.addMenuItem(menuItems, 'アクセス', completedScenes.length + 2, itemWidth, itemHeight, padding);
 
-        // 設定
         this.addMenuItem(menuItems, '設定', completedScenes.length + 3, itemWidth, itemHeight, padding);
+
+        // よくある質問（新しく追加）
+        this.addMenuItem(menuItems, 'よくある質問', completedScenes.length + 4, itemWidth, itemHeight, padding);
 
         // メニューの位置を調整
         menuItems.setPosition(width / 2, height / 4);
@@ -77,7 +79,7 @@ export class MenuScene extends Phaser.Scene {
         // ボタンをインタラクティブにする
         button.setInteractive();
         button.on('pointerdown', () => {
-            if (text !== '持ち物' && text !== '設定' && text !== 'アクセス' && !text.startsWith('問題')) {
+            if (text !== '持ち物' && text !== '設定' && text !== 'アクセス' && text !== 'よくある質問' && !text.startsWith('問題')) {
                 const gameState = loadGameState();
                 this.scene.start(gameState.current_scene);
             } else if (text.startsWith('問題')) {
@@ -92,6 +94,8 @@ export class MenuScene extends Phaser.Scene {
                 this.scene.start('Access');  // Access シーンに遷移
             } else if (text === '設定') {
                 this.scene.start('Setting');  // Setting シーンに遷移
+            } else if (text === 'よくある質問') {
+                this.scene.start('Faq');  // Faq シーンに遷移
             }
         });
     
@@ -100,7 +104,7 @@ export class MenuScene extends Phaser.Scene {
 
     addDebugButtons() {
         const debugScenes = [
-            'Login', 'Faq','Stop', 'Pinch', 'CrossWord', 'Block',
+            'Login', 'Unsubscribe','Faq','Stop', 'Pinch', 'CrossWord', 'Block',
             'Mario', 'KeyBoard', 'Kanda', 'Math'
         ];
 
@@ -133,9 +137,10 @@ export class MenuScene extends Phaser.Scene {
         const modalX = this.scale.width / 2 - modalWidth / 2;
         const modalY = this.scale.height / 2 - modalHeight / 2;
     
-        // モーダルの背景（白のまま）
-        const modalBg = this.add.rectangle(modalX, modalY, modalWidth, modalHeight, 0xFFFFFF, 1);
+        // モーダルの背景（白）と黒い枠線
+        const modalBg = this.add.rectangle(modalX, modalY, modalWidth, modalHeight, 0xFFFFFF);
         modalBg.setOrigin(0, 0);
+        modalBg.setStrokeStyle(2, 0x000000); // 2ピクセルの黒い枠線を追加
     
         // モーダルのメッセージ（テキスト色は黒のまま）
         const message = this.add.text(this.scale.width / 2, modalY + modalHeight / 2, 
@@ -143,7 +148,7 @@ export class MenuScene extends Phaser.Scene {
             fontSize: `${this.relativeUnits.fontSize.medium}px`,
             color: '#000000',
             align: 'center',
-            lineSpacing: 10
+            lineSpacing: 10,
         }).setOrigin(0.5).setPadding(4);
     
         // 閉じるボタン（テキスト色は黒のまま）

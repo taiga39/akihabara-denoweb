@@ -77,7 +77,11 @@ export class Faq extends BaseScene {
                 height: ru.toPixels(15),
                 orientation: 'horizontal',
                 background: this.rexUI.add.roundRectangle({ fillColor: 0xFFFFFF, radius: 0 }),
-                text: this.add.text(0, 0, 'FAQ', { fontSize: ru.fontSize.large, fontStyle: 'bold', color: '#000000' }),
+                text: this.add.text(0, 0, 'よくある質問', { 
+                    fontSize: ru.fontSize.large, 
+                    fontStyle: 'bold', 
+                    color: '#000000' 
+                }).setPadding(2), // パディングを追加
             }),
             space: { left: 10, right: 10, top: 10, bottom: 10, panel: 10, header: 10 }
         }).layout();

@@ -1,5 +1,6 @@
 const SCENE_ORDER = [
     'Login',
+    'Unsubscribe',
     'CrossWord',
     'Pinch',
     'KeyBoard',
