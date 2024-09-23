@@ -9,11 +9,19 @@ export class Stop extends BaseScene {
     constructor() {
         super('Stop');
         this.reels = [];
-        this.isSpinning = [true, true, true];  // 変更: 常に回転している状態で初期化
+        this.isSpinning = [true, true, true];
         this.symbols = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
         this.currentIndexes = [0, 0, 0];
         this.spinEvents = [];
-        this.selectBoxes = [];
+        this.dropDownLists = [];
+    }
+
+    preload() {
+        this.load.scenePlugin({
+            key: 'rexuiplugin',
+            url: 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexuiplugin.min.js',
+            sceneKey: 'rexUI'
+        });
     }
 
     createHighQualityText(x, y, text, style) {
@@ -33,25 +41,16 @@ export class Stop extends BaseScene {
         this.add.image(width / 2, height / 2, 'background').setDisplaySize(width, height);
 
         this.createHighQualityText(width / 2, height * 0.2, '７７７でそろえろ', { 
-            fontSize: ru.fontSize.large * 1.4,  // 適切なフォントサイズに調整
+            fontSize: ru.fontSize.large * 1.4,
             fill: '#ffffff',
-            wordWrap: { width: width * 0.8 },  // テキストの折り返し幅を指定
-            align: 'center'  // テキストを中央揃え
+            wordWrap: { width: width * 0.8 },
+            align: 'center'
         })
-        .setOrigin(0.5, 0)  // 水平方向は中央揃え、垂直方向は上揃え
-        .setPadding(10); 
+        .setOrigin(0.5, 0)
+        .setPadding(10);
 
-        this.selectBoxes.forEach(selectBox => {
-            if (selectBox && selectBox.parentNode) {
-                selectBox.parentNode.removeChild(selectBox);
-            }
-        });
-        this.selectBoxes = [];
-
-        // リールをクリア
         this.reels = [];
 
-        // STARTボタン（赤い丸に白文字）
         const startButton = this.add.circle(width * 0.5, height * 0.8, ru.toPixels(10), 0xff0000);
         const startText = this.add.text(width * 0.5, height * 0.8, 'START', { 
             fontSize: `${ru.fontSize.medium}px`, 
@@ -61,38 +60,27 @@ export class Stop extends BaseScene {
         startButton.setInteractive()
             .on('pointerdown', () => this.startAllSpins());
 
-        // リールとSTOPボタンの作成
         for (let i = 0; i < 3; i++) {
             const x = width * (0.15 + i * 0.35);
             const reelY = height * 0.4;
         
-            // 背景の白い四角形を追加し、サイズを少し大きくする
-            const background = this.add.rectangle(x, reelY, width * 0.25, height * 0.15, 0xffffff); // 背景の幅を広げる
+            const background = this.add.rectangle(x, reelY, width * 0.25, height * 0.15, 0xffffff);
             background.setOrigin(0.5);
         
-            // リールのテキストを更新
-            const reel = this.add.text(x, reelY, this.symbols[this.currentIndexes[i]], { 
-                fontSize: `${height * 0.15}px`, 
-                fill: '#000',
-                fontStyle: 'bold'
-            })
-                .setOrigin(0.7, 0.5)
-                .setInteractive()
-                .on('pointerdown', () => this.onReelClick(i));
+            const reel = this.createReel(i, x, reelY, background.width, background.height);
             this.reels.push(reel);
         
             // 下向きの三角形（黒）を追加
             const triangle = this.add.triangle(
-                x + background.width * 0.45, // 背景の右側に配置
+                x + background.width * 0.45,
                 reelY * 1.05, 
-                0, height * 0.01, // 上
-                height * 0.015, -height * 0.015, // 右下
-                -height * 0.015, -height * 0.015, // 左下
+                0, height * 0.01,
+                height * 0.015, -height * 0.015,
+                -height * 0.015, -height * 0.015,
                 0x000000
             );
             triangle.setOrigin(0.5);
         
-            // STOPボタン（黄色い丸に黒文字）
             const stopButton = this.add.circle(x, height * 0.6, ru.toPixels(8), 0xffff00);
             const stopText = this.add.text(x, height * 0.6, 'STOP', { 
                 fontSize: `${ru.fontSize.small}px`, 
@@ -105,15 +93,10 @@ export class Stop extends BaseScene {
                 .on('pointerdown', () => this.onReelClick(i));
             triangle.setInteractive()
                 .on('pointerdown', () => this.onReelClick(i));
-        
-            // 各リールの下にセレクトボックスを作成
-            this.createSelectBox(i, x, height * 0.5);
         }
-        
 
         EventBus.emit('current-scene-ready', this);
 
-        // 全てのリールのスピンを開始
         this.startAllSpins();
 
         const bubbleWidth = ru.toPixels(60);
@@ -130,62 +113,85 @@ export class Stop extends BaseScene {
             "こんにちは！@これは@吹き出しです。"
         );
     
-        // SpeechBubble を最前面に表示
         this.children.bringToTop(speechBubble);
     }
 
-    createSelectBox(index, x, y) {
-        const selectBox = document.createElement('select');
-        selectBox.style.position = 'absolute';
-        selectBox.style.left = `${x}px`;
-        selectBox.style.top = `${y}px`;
-        selectBox.style.transform = 'translate(-50%, 0)';
-        selectBox.style.fontSize = '20px';
-        selectBox.style.padding = '5px';
-        selectBox.style.width = '80px';
-        selectBox.style.display = 'none';
-        selectBox.style.backgroundColor = '#f0f0f0';
-        selectBox.style.border = '2px solid #333';
-        selectBox.style.borderRadius = '5px';
-        selectBox.style.appearance = 'none';
-        selectBox.style.backgroundImage = 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")';
-        selectBox.style.backgroundRepeat = 'no-repeat';
-        selectBox.style.backgroundPosition = 'right .5em top 50%, 0 0';
-        selectBox.style.backgroundSize = '.65em auto, 100%';
+    createReel(index, x, y, width, height) {
+        const ru = createRelativeUnits(this);
+        const options = this.symbols.map(symbol => ({ text: symbol, value: symbol }));
 
-        this.symbols.forEach((symbol) => {
-            const option = document.createElement('option');
-            option.value = symbol;
-            option.text = symbol;
-            selectBox.appendChild(option);
-        });
+        const dropDownList = this.rexUI.add.dropDownList({
+            x: x,
+            y: y,
+            width: width,
+            height: height,
 
-        document.body.appendChild(selectBox);
-        this.selectBoxes[index] = selectBox;
+            background: this.rexUI.add.roundRectangle(0, 0, 2, 2, 10, 0xFFFFFF),
 
-        selectBox.addEventListener('change', () => {
-            const selectedValue = selectBox.value;
-            this.updateReel(index, selectedValue);
-            this.hideSelectBox(index);
-            this.checkWinCondition();
-        });
+            text: this.add.text(0, 0, this.symbols[this.currentIndexes[index]], {
+                fontSize: `${height * 0.8}px`,
+                color: '#000000',
+                fontStyle: 'bold'
+            }).setOrigin(0.5),
+
+            options: options,
+
+            list: {
+                expandDirection: 'down',
+
+                createBackgroundCallback: (scene) => {
+                    return scene.rexUI.add.roundRectangle(0, 0, 2, 2, 10, 0xFFFFFF);
+                },
+
+                createButtonCallback: (scene, option) => {
+                    return scene.rexUI.add.label({
+                        background: scene.rexUI.add.roundRectangle(0, 0, 2, 2, 0, 0xFFFFFF),
+                        text: scene.add.text(0, 0, option.text, {
+                            fontSize: ru.fontSize.small,
+                            color: '#000000'
+                        }).setPadding(4),
+                        space: {
+                            left: 10,
+                            right: 10,
+                            top: 10,
+                            bottom: 10,
+                            icon: 10
+                        }
+                    });
+                },
+
+                onButtonClick: (button, index, pointer, event) => {
+                    const selectedValue = button.text;
+                    this.updateReel(this.dropDownLists.indexOf(dropDownList), selectedValue);
+                    this.checkWinCondition();
+                },
+
+                maxHeight: 200,
+            },
+
+            setValueCallback: (dropDownList, value) => {
+                dropDownList.text = value;
+            },
+
+            space: {
+                left: 10,
+                right: 10,
+                top: 10,
+                bottom: 10,
+                icon: 10,
+                choice: 10,
+            },
+
+        }).layout();
+
+        this.dropDownLists[index] = dropDownList;
+        return dropDownList;
     }
 
     onReelClick(reelIndex) {
         if (!this.isSpinning[reelIndex]) {
-            this.showSelectBox(reelIndex);
+            this.dropDownLists[reelIndex].open();
         }
-    }
-
-    showSelectBox(reelIndex) {
-        this.selectBoxes[reelIndex].style.display = 'block';
-        this.selectBoxes[reelIndex].value = this.symbols[this.currentIndexes[reelIndex]];
-        this.scene.pause();
-    }
-
-    hideSelectBox(reelIndex) {
-        this.selectBoxes[reelIndex].style.display = 'none';
-        this.scene.resume();
     }
 
     updateReel(reelIndex, value) {
@@ -200,7 +206,7 @@ export class Stop extends BaseScene {
     }
 
     startSpin(reelIndex) {
-        this.isSpinning[reelIndex] = true;  // 変更: 条件チェックを削除
+        this.isSpinning[reelIndex] = true;
         if (this.spinEvents[reelIndex]) {
             this.spinEvents[reelIndex].remove();
         }
