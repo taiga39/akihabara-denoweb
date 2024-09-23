@@ -43,6 +43,7 @@ export class Pinch extends BaseScene {
     
         const dragScale = this.plugins.get('rexpinchplugin').add(this);
         const camera = this.cameras.main;
+        this.cameras.main.setBounds(0, 0, this.worldWidth, this.worldHeight);
     
         // 3列表示に設定
         this.setInitialZoom(camera);
@@ -89,13 +90,17 @@ export class Pinch extends BaseScene {
         this.cellSize = Math.min(screenWidth / 5, (screenHeight - 2 * this.verticalPadding) / this.rowCount);
         this.worldWidth = this.cellSize * this.columnCount;
         this.worldHeight = this.cellSize * this.rowCount + 2 * this.verticalPadding;
-        this.minZoom = 1;
+    
+        // ワールド全体が画面に収まるズーム値
+        this.minZoom = Math.min(screenWidth / this.worldWidth, screenHeight / this.worldHeight);
+        // 3列表示のズーム値（初期値）
         this.maxZoom = screenWidth / (this.cellSize * 3);
     }
 
     setInitialZoom(camera) {
         camera.zoom = this.maxZoom;
         camera.centerOn(this.worldWidth / 2, this.worldHeight / 2);
+        camera.setBounds(0, 0, this.worldWidth, this.worldHeight);
     }
 
     createGrid() {
@@ -305,25 +310,36 @@ export class Pinch extends BaseScene {
     
     limitCameraScroll(camera) {
         const zoom = camera.zoom;
-        const bounds = camera.getBounds();
-        
-        if (bounds) {
-            const leftBound = bounds.x;
-            const rightBound = Math.max(leftBound, bounds.right - camera.width / zoom);
-            const topBound = bounds.y;
-            const bottomBound = Math.max(topBound, bounds.bottom - camera.height / zoom);
+        const worldLeft = 0;
+        const worldRight = this.worldWidth;
+        const worldTop = 0;
+        const worldBottom = this.worldHeight;
     
-            camera.scrollX = Phather.Math.Clamp(camera.scrollX, leftBound, rightBound);
-            camera.scrollY = Phaser.Math.Clamp(camera.scrollY, topBound, bottomBound);
+        const viewWidth = camera.width / zoom;
+        const viewHeight = camera.height / zoom;
+    
+        let leftBound, rightBound, topBound, bottomBound;
+    
+        if (viewWidth < this.worldWidth) {
+            leftBound = worldLeft;
+            rightBound = worldRight - viewWidth;
         } else {
-            // 全体表示時の処理
-            const leftBound = 0;
-            const rightBound = Math.max(0, this.worldWidth - camera.width / zoom);
-            const topBound = 0;
-            const bottomBound = Math.max(0, this.worldHeight - camera.height / zoom);
-    
-            camera.scrollX = Phaser.Math.Clamp(camera.scrollX, leftBound, rightBound);
-            camera.scrollY = Phaser.Math.Clamp(camera.scrollY, topBound, bottomBound);
+            // カメラの表示領域がワールドより大きい場合、ワールドを中央に配置
+            leftBound = (worldRight - viewWidth) / 2;
+            rightBound = leftBound;
         }
+    
+        if (viewHeight < this.worldHeight) {
+            topBound = worldTop;
+            bottomBound = worldBottom - viewHeight;
+        } else {
+            // カメラの表示領域がワールドより大きい場合、ワールドを中央に配置
+            topBound = (worldBottom - viewHeight) / 2;
+            bottomBound = topBound;
+        }
+    
+        camera.scrollX = Phaser.Math.Clamp(camera.scrollX, leftBound, rightBound);
+        camera.scrollY = Phaser.Math.Clamp(camera.scrollY, topBound, bottomBound);
     }
+    
 }
