@@ -9,11 +9,10 @@ export class Pinch extends BaseScene {
         this.cells = [];
         this.columnCount = 5;
         this.rowCount = 3;
-        this.verticalPadding = 100;
         this.checkboxSize = 15;
         this.imageLayout = [
-            3, 2, 4, 5, 7,  // 1行目に3と7を配置
-            11, 1, 2, 4, 5,
+            3, 2, 4, 11, 7,  // 1行目に3と7を配置
+            11, 1, 6, 5, 5,
             6, 8, 9, 10, 11
         ];
         this.isFullView = false;
@@ -49,13 +48,13 @@ export class Pinch extends BaseScene {
         // 指示テキストを作成
         const instructionText = this.createHighQualityText(
             this.scale.width / 2,
-            this.verticalPadding * 1, // 位置を調整
-            '看板の赤い文字\nをすべて選択してください', // 改行を追加
+            this.verticalPadding * 0.45,
+            '看板の赤い文字\nをすべて選択してください',
             {
-                font: '1.9rem Arial', // フォントサイズを調整
+                font: '2.3rem Arial',
                 fill: '#ffffff',
                 backgroundColor: '#0000ff',
-                padding: { x: 15, y: 8 } // パディングを調整
+                padding: { x: 15, y: 8 }
             }
         )
         .setOrigin(0.5)
@@ -86,20 +85,30 @@ export class Pinch extends BaseScene {
     calculateSizes() {
         const screenWidth = this.scale.width;
         const screenHeight = this.scale.height;
-        this.cellSize = Math.min(screenWidth / 5, (screenHeight - 2 * this.verticalPadding) / this.rowCount);
-        this.worldWidth = this.cellSize * this.columnCount;
-        this.worldHeight = this.cellSize * this.rowCount + this.verticalPadding * 2;
 
-        // ワールド全体が画面に収まるズーム値
-        this.minZoom = Math.min(screenWidth / this.worldWidth, screenHeight / this.worldHeight);
-        // 3列表示のズーム値（初期値）
+        // セルサイズを計算
+        this.cellSize = Math.min(screenWidth / this.columnCount, screenHeight / this.rowCount);
+
+        // ワールドサイズを計算
+        this.worldWidth = this.cellSize * this.columnCount;
+        this.worldHeight = this.cellSize * this.rowCount;
+
+        // 垂直方向のパディングを計算してグリッドを中央に配置
+        this.verticalPadding = (screenHeight - this.worldHeight) / 2;
+
+        // 最小ズームと最大ズームを計算
+        this.minZoom = Math.min(screenWidth / this.worldWidth, screenHeight / (this.worldHeight + this.verticalPadding * 2));
         this.maxZoom = screenWidth / (this.cellSize * 3);
+    }
+
+    getGridCenterY() {
+        return this.verticalPadding + (this.cellSize * this.rowCount) / 2;
     }
 
     setInitialZoom(camera) {
         camera.zoom = this.maxZoom;
-        camera.centerOn(this.worldWidth / 2, this.worldHeight / 2);
-        camera.setBounds(0, 0, this.worldWidth, this.worldHeight);
+        camera.centerOn(this.worldWidth / 2, this.getGridCenterY());
+        camera.setBounds(0, 0, this.worldWidth, this.worldHeight + this.verticalPadding * 2);
     }
 
     createGrid() {
@@ -309,16 +318,16 @@ export class Pinch extends BaseScene {
             if (camera.zoom >= this.maxZoom) {
                 // ズームイン最大値に達した場合、カメラを初期位置に戻す
                 camera.zoom = this.maxZoom;
-                camera.centerOn(this.worldWidth / 2, this.worldHeight / 2);
-                camera.setBounds(0, 0, this.worldWidth, this.worldHeight);
+                camera.centerOn(this.worldWidth / 2, this.getGridCenterY());
+                camera.setBounds(0, 0, this.worldWidth, this.worldHeight + this.verticalPadding * 2);
             } else if (camera.zoom <= this.minZoom) {
-                // ズームアウト最小値に達した場合、カメラをワールドの中心にし、境界を解除
+                // ズームアウト最小値に達した場合、カメラをグリッドの中央にし、境界を解除
                 camera.zoom = this.minZoom;
-                camera.centerOn(this.worldWidth / 2, this.worldHeight / 2);
+                camera.centerOn(this.worldWidth / 2, this.getGridCenterY());
                 camera.setBounds(); // 境界を解除
             } else {
                 // ズーム中の場合、境界を設定しスクロール範囲を制限
-                camera.setBounds(0, 0, this.worldWidth, this.worldHeight);
+                camera.setBounds(0, 0, this.worldWidth, this.worldHeight + this.verticalPadding * 2);
                 this.limitCameraScroll(camera);
             }
         });
@@ -329,7 +338,7 @@ export class Pinch extends BaseScene {
         const worldLeft = 0;
         const worldRight = this.worldWidth;
         const worldTop = 0;
-        const worldBottom = this.worldHeight;
+        const worldBottom = this.worldHeight + this.verticalPadding * 2;
 
         const viewWidth = camera.width / zoom;
         const viewHeight = camera.height / zoom;
@@ -345,7 +354,7 @@ export class Pinch extends BaseScene {
             rightBound = leftBound;
         }
 
-        if (viewHeight < this.worldHeight) {
+        if (viewHeight < worldBottom) {
             topBound = worldTop;
             bottomBound = worldBottom - viewHeight;
         } else {
@@ -379,13 +388,13 @@ export class Pinch extends BaseScene {
         if (this.isFullView) {
             // 全体表示
             camera.zoom = this.minZoom;
-            camera.centerOn(this.worldWidth / 2, this.worldHeight / 2);
+            camera.centerOn(this.worldWidth / 2, this.getGridCenterY());
             camera.setBounds(); // 境界を解除
         } else {
             // 3列表示
             camera.zoom = this.maxZoom;
-            camera.centerOn(this.worldWidth / 2, this.worldHeight / 2);
-            camera.setBounds(0, 0, this.worldWidth, this.worldHeight);
+            camera.centerOn(this.worldWidth / 2, this.getGridCenterY());
+            camera.setBounds(0, 0, this.worldWidth, this.worldHeight + this.verticalPadding * 2);
         }
 
         this.limitCameraScroll(camera);
