@@ -51,7 +51,7 @@ export class Pinch extends BaseScene {
             this.verticalPadding * 0.45,
             '看板の赤い文字\nをすべて選択してください',
             {
-                font: '2.3rem Arial',
+                font: '1.9rem Arial',
                 fill: '#ffffff',
                 backgroundColor: '#0000ff',
                 padding: { x: 15, y: 8 }
